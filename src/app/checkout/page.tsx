@@ -2,9 +2,9 @@
 import { useState } from 'react'
 
 export default function CheckoutPage() {
-  const [loading, setLoading] = useState<string | null>(null)
+  const [loading, setLoading] = useState<string|null>(null)
 
-  async function handleBuy(cardType: 'pvc' | 'metal') {
+  async function handleBuy(cardType: 'pvc'|'metal') {
     setLoading(cardType)
     try {
       const res = await fetch('/api/stripe/checkout', {
@@ -14,12 +14,9 @@ export default function CheckoutPage() {
       })
       const data = await res.json()
       if (data.url) window.location.href = data.url
-      else alert('Error al iniciar el pago. Intenta de nuevo.')
-    } catch {
-      alert('Error de conexión. Intenta de nuevo.')
-    } finally {
-      setLoading(null)
-    }
+      else alert('Error starting payment. Please try again.')
+    } catch { alert('Connection error. Please try again.') }
+    finally { setLoading(null) }
   }
 
   return (
@@ -30,7 +27,7 @@ export default function CheckoutPage() {
         .wrap{max-width:720px;width:100%;margin:0 auto;text-align:center}
         .back{display:inline-flex;align-items:center;gap:6px;color:#6B6B80;text-decoration:none;font-size:14px;margin-bottom:40px;transition:color 0.2s}
         .back:hover{color:#F2F2F4}
-        h1{font-family:'Syne',sans-serif;font-weight:800;font-size:40px;letter-spacing:-1.5px;margin-bottom:12px}
+        h1{font-family:'Syne',sans-serif;font-weight:800;font-size:36px;letter-spacing:-1px;margin-bottom:12px}
         .sub{color:#6B6B80;font-size:16px;margin-bottom:48px}
         .cards{display:grid;grid-template-columns:1fr 1fr;gap:20px}
         .card{background:#0E0E16;border:1px solid #22223A;border-radius:16px;padding:32px;text-align:left;transition:border-color 0.3s,transform 0.3s;position:relative}
@@ -59,60 +56,46 @@ export default function CheckoutPage() {
         @media(max-width:600px){.cards{grid-template-columns:1fr}}
       `}</style>
       <link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet"/>
-
       <div className="wrap">
-        <a href="/" className="back">← Volver al inicio</a>
-        <h1>Elige tu SmartCard</h1>
-        <p className="sub">Pago único. Sin suscripciones. Envío incluido.</p>
-
+        <a href="/" className="back">← Back to home</a>
+        <h1>Choose your SynqoTap</h1>
+        <p className="sub">One payment. No subscriptions. Shipping included.</p>
         <div className="cards">
-          {/* PVC */}
           <div className="card">
             <div className="icon">💳</div>
             <div className="name">PVC Card</div>
-            <div className="desc">Ligera, resistente y elegante. Perfecta para networking cotidiano.</div>
+            <div className="desc">Light, durable and elegant. Perfect for everyday networking.</div>
             <div className="price">$39<span> USD</span></div>
             <ul className="features">
-              <li><span className="check">✓</span> Chip NFC programado</li>
-              <li><span className="check">✓</span> Perfil digital ilimitado</li>
-              <li><span className="check">✓</span> Actualizaciones en tiempo real</li>
-              <li><span className="check">✓</span> URL personalizada</li>
-              <li><span className="check">✓</span> 3 templates de diseño</li>
+              <li><span className="check">✓</span> Programmed NFC chip</li>
+              <li><span className="check">✓</span> Unlimited digital profile</li>
+              <li><span className="check">✓</span> Real-time updates</li>
+              <li><span className="check">✓</span> Custom URL</li>
+              <li><span className="check">✓</span> 3 design templates</li>
             </ul>
-            <button
-              className="btn btn-outline"
-              onClick={() => handleBuy('pvc')}
-              disabled={loading !== null}
-            >
-              {loading === 'pvc' ? <><div className="spinner spinner-white"/>Procesando...</> : 'Comprar PVC →'}
+            <button className="btn btn-outline" onClick={() => handleBuy('pvc')} disabled={loading !== null}>
+              {loading === 'pvc' ? <><div className="spinner spinner-white"/>Processing...</> : 'Buy PVC →'}
             </button>
           </div>
-
-          {/* METAL */}
           <div className="card featured">
             <div className="badge">Popular</div>
             <div className="icon">⚡</div>
             <div className="name">Metal Card</div>
-            <div className="desc">Acero inoxidable premium. Primera impresión que no se olvida.</div>
+            <div className="desc">Premium stainless steel. A first impression that won't be forgotten.</div>
             <div className="price">$79<span> USD</span></div>
             <ul className="features">
-              <li><span className="check">✓</span> Todo lo del PVC</li>
-              <li><span className="check">✓</span> Acero inoxidable premium</li>
-              <li><span className="check">✓</span> Acabado mate o espejo</li>
-              <li><span className="check">✓</span> Grabado láser incluido</li>
-              <li><span className="check">✓</span> Estuche de presentación</li>
+              <li><span className="check">✓</span> Everything in PVC</li>
+              <li><span className="check">✓</span> Premium stainless steel</li>
+              <li><span className="check">✓</span> Matte or mirror finish</li>
+              <li><span className="check">✓</span> Laser engraving included</li>
+              <li><span className="check">✓</span> Presentation case</li>
             </ul>
-            <button
-              className="btn btn-cyan"
-              onClick={() => handleBuy('metal')}
-              disabled={loading !== null}
-            >
-              {loading === 'metal' ? <><div className="spinner"/>Procesando...</> : 'Comprar Metal →'}
+            <button className="btn btn-cyan" onClick={() => handleBuy('metal')} disabled={loading !== null}>
+              {loading === 'metal' ? <><div className="spinner"/>Processing...</> : 'Buy Metal →'}
             </button>
           </div>
         </div>
-
-        <p className="secure">🔒 Pago seguro con Stripe · Tu información está protegida</p>
+        <p className="secure">🔒 Secure payment with Stripe · Your information is protected</p>
       </div>
     </>
   )

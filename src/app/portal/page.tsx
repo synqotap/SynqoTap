@@ -217,9 +217,6 @@ export default function PortalPage() {
     const isLast = wizardStep === WIZARD_STEPS.length - 1
     return (
       <>
-      <div className="bg-red-500 text-white p-4 text-center">
-  Tailwind funciona
-</div>
         <style>{`
           *{box-sizing:border-box;margin:0;padding:0}
           body{background:#07070C;color:#F2F2F4;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}

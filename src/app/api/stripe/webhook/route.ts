@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
 
       // Send confirmation email
       await sendPurchaseConfirmation({
-        email: 'customerEmail', // change to customerEmail when domain is verified in Resend
+        email: customerEmail, // change to customerEmail when domain is verified in Resend
         name: customerName,
         cardType: card_type,
         slug,

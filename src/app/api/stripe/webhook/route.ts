@@ -70,7 +70,11 @@ export async function POST(req: NextRequest) {
 
       // Get or create customer
       let { data: customer } = await supabase.from('customers').select('id').eq('email', customerEmail).single()
-      if (!customer && userId) {
+// Si el customer existe pero no tiene user_id, actualizarlo
+if (customer && userId) {
+  await supabase.from('customers').update({ user_id: userId }).eq('id', customer.id)
+}
+if (!customer && userId) {
         const { data: newCustomer } = await supabase.from('customers').insert({
           user_id: userId, email: customerEmail, full_name: customerName, plan: card_type,
         }).select('id').single()

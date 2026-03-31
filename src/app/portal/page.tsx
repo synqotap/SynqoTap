@@ -65,8 +65,15 @@ export default function PortalPage() {
 
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { window.location.href = '/login'; return }
-    const { data: customer } = await supabase.from('customers').select('id').eq('user_id', user.id).single()
+if (!user) { window.location.href = '/login'; return }
+
+if (user.user_metadata?.force_password_change) {
+  await supabase.auth.updateUser({ data: { force_password_change: false } })
+  window.location.href = '/portal/settings?first=true'
+  return
+}
+
+const { data: customer } = await supabase.from('customers').select('id').eq('user_id', user.id).single()
     if (!customer) { setLoading(false); return }
     const { data: profileData } = await supabase.from('profiles').select('*').eq('customer_id', customer.id).single()
     const { data: buttonsData } = await supabase.from('profile_buttons').select('*').eq('profile_id', profileData?.id).order('position')

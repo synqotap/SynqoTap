@@ -45,11 +45,11 @@ export async function POST(req: NextRequest) {
 
       // Try to create user — if exists, update password
       const { data: authData, error: createError } = await supabase.auth.admin.createUser({
-        email: customerEmail,
-        password: tempPassword,
-        email_confirm: true,
-        user_metadata: { full_name: customerName },
-      })
+  email: customerEmail,
+  password: tempPassword,
+  email_confirm: true,
+  user_metadata: { full_name: customerName, force_password_change: true },
+})
 
       if (createError) {
         if (createError.message.includes('already registered') || createError.message.includes('already been registered')) {

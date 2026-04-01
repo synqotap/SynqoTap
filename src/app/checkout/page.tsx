@@ -1,10 +1,11 @@
 'use client'
 import { useState } from 'react'
+import { Card, Button } from '@/components/ui'
 
 export default function CheckoutPage() {
-  const [loading, setLoading] = useState<string|null>(null)
+  const [loading, setLoading] = useState<string | null>(null)
 
-  async function handleBuy(cardType: 'pvc'|'metal') {
+  async function handleBuy(cardType: 'pvc' | 'metal') {
     setLoading(cardType)
     try {
       const res = await fetch('/api/stripe/checkout', {
@@ -12,91 +13,84 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cardType, quantity: 1 }),
       })
-      const data = await res.json()
+      const data = await res.json() as { url?: string }
       if (data.url) window.location.href = data.url
       else alert('Error starting payment. Please try again.')
-    } catch { alert('Connection error. Please try again.') }
-    finally { setLoading(null) }
+    } catch {
+      alert('Connection error. Please try again.')
+    } finally {
+      setLoading(null)
+    }
   }
 
+  const CARDS = [
+    {
+      type: 'pvc' as const,
+      icon: '💳',
+      name: 'PVC Card',
+      desc: 'Light, durable and elegant. Perfect for everyday networking.',
+      price: '39',
+      featured: false,
+      features: ['Programmed NFC chip', 'Unlimited digital profile', 'Real-time updates', 'Custom URL', '3 design templates'],
+    },
+    {
+      type: 'metal' as const,
+      icon: '⚡',
+      name: 'Metal Card',
+      desc: "Premium stainless steel. A first impression that won't be forgotten.",
+      price: '79',
+      featured: true,
+      features: ['Everything in PVC', 'Premium stainless steel', 'Matte or mirror finish', 'Laser engraving included', 'Presentation case'],
+    },
+  ]
+
   return (
-    <>
-      <style>{`
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{background:#07070C;color:#F2F2F4;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 24px}
-        .wrap{max-width:720px;width:100%;margin:0 auto;text-align:center}
-        .back{display:inline-flex;align-items:center;gap:6px;color:#6B6B80;text-decoration:none;font-size:14px;margin-bottom:40px;transition:color 0.2s}
-        .back:hover{color:#F2F2F4}
-        h1{font-family:'Syne',sans-serif;font-weight:800;font-size:36px;letter-spacing:-1px;margin-bottom:12px}
-        .sub{color:#6B6B80;font-size:16px;margin-bottom:48px}
-        .cards{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-        .card{background:#0E0E16;border:1px solid #22223A;border-radius:16px;padding:32px;text-align:left;transition:border-color 0.3s,transform 0.3s;position:relative}
-        .card:hover{border-color:rgba(0,229,255,0.3);transform:translateY(-4px)}
-        .card.featured{border-color:#00E5FF;background:linear-gradient(160deg,rgba(0,229,255,0.06) 0%,#0E0E16 60%)}
-        .badge{position:absolute;top:20px;right:20px;background:#00E5FF;color:#07070C;font-size:11px;font-weight:700;padding:4px 10px;border-radius:50px}
-        .icon{font-size:36px;margin-bottom:16px}
-        .name{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;margin-bottom:8px}
-        .desc{color:#6B6B80;font-size:14px;margin-bottom:20px;line-height:1.6}
-        .price{font-family:'Syne',sans-serif;font-weight:800;font-size:44px;letter-spacing:-2px;margin-bottom:24px}
-        .price span{font-size:16px;font-weight:400;color:#6B6B80;letter-spacing:0}
-        .features{list-style:none;margin-bottom:28px}
-        .features li{display:flex;align-items:center;gap:8px;font-size:14px;padding:7px 0;border-bottom:1px solid #1C1C2E;color:rgba(255,255,255,0.8)}
-        .features li:last-child{border-bottom:none}
-        .check{color:#00E5FF}
-        .btn{width:100%;padding:14px;border-radius:50px;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;border:none;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px}
-        .btn-cyan{background:#00E5FF;color:#07070C;box-shadow:0 0 30px rgba(0,229,255,0.2)}
-        .btn-cyan:hover{box-shadow:0 0 50px rgba(0,229,255,0.4)}
-        .btn-outline{background:transparent;color:#F2F2F4;border:1px solid #22223A}
-        .btn-outline:hover{border-color:rgba(0,229,255,0.4);color:#00E5FF}
-        .btn:disabled{opacity:0.6;cursor:not-allowed}
-        .spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,0.2);border-top-color:#07070C;border-radius:50%;animation:spin 0.8s linear infinite}
-        .spinner-white{border:2px solid rgba(255,255,255,0.2);border-top-color:#F2F2F4}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .secure{margin-top:24px;font-size:13px;color:#6B6B80}
-        @media(max-width:600px){.cards{grid-template-columns:1fr}}
-      `}</style>
-      <link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet"/>
-      <div className="wrap">
-        <a href="/" className="back">← Back to home</a>
-        <h1>Choose your SynqoTap</h1>
-        <p className="sub">One payment. No subscriptions. Shipping included.</p>
-        <div className="cards">
-          <div className="card">
-            <div className="icon">💳</div>
-            <div className="name">PVC Card</div>
-            <div className="desc">Light, durable and elegant. Perfect for everyday networking.</div>
-            <div className="price">$39<span> USD</span></div>
-            <ul className="features">
-              <li><span className="check">✓</span> Programmed NFC chip</li>
-              <li><span className="check">✓</span> Unlimited digital profile</li>
-              <li><span className="check">✓</span> Real-time updates</li>
-              <li><span className="check">✓</span> Custom URL</li>
-              <li><span className="check">✓</span> 3 design templates</li>
-            </ul>
-            <button className="btn btn-outline" onClick={() => handleBuy('pvc')} disabled={loading !== null}>
-              {loading === 'pvc' ? <><div className="spinner spinner-white"/>Processing...</> : 'Buy PVC →'}
-            </button>
-          </div>
-          <div className="card featured">
-            <div className="badge">Popular</div>
-            <div className="icon">⚡</div>
-            <div className="name">Metal Card</div>
-            <div className="desc">Premium stainless steel. A first impression that won't be forgotten.</div>
-            <div className="price">$79<span> USD</span></div>
-            <ul className="features">
-              <li><span className="check">✓</span> Everything in PVC</li>
-              <li><span className="check">✓</span> Premium stainless steel</li>
-              <li><span className="check">✓</span> Matte or mirror finish</li>
-              <li><span className="check">✓</span> Laser engraving included</li>
-              <li><span className="check">✓</span> Presentation case</li>
-            </ul>
-            <button className="btn btn-cyan" onClick={() => handleBuy('metal')} disabled={loading !== null}>
-              {loading === 'metal' ? <><div className="spinner"/>Processing...</> : 'Buy Metal →'}
-            </button>
-          </div>
+    <div className="min-h-screen bg-[#07070C] text-[#F2F2F4] flex items-center justify-center px-5 py-12 font-[family-name:var(--font-dm-sans)]">
+      <link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+      <div className="w-full max-w-2xl">
+        <a href="/" className="inline-flex items-center gap-2 text-sm text-[#6B6B80] hover:text-[#F2F2F4] transition-colors mb-10">
+          ← Back to home
+        </a>
+        <h1 className="font-black text-3xl sm:text-4xl tracking-tight mb-3 font-[family-name:var(--font-syne)]">Choose your SynqoTap</h1>
+        <p className="text-[#6B6B80] mb-10">One payment. No subscriptions. Shipping included.</p>
+
+        <div className="grid sm:grid-cols-2 gap-5">
+          {CARDS.map(card => (
+            <Card
+              key={card.type}
+              className={`relative transition-all hover:-translate-y-1 duration-300 ${card.featured ? 'border-[#00E5FF] bg-gradient-to-b from-[#00E5FF]/[0.06] to-[#0E0E16]' : ''}`}
+            >
+              {card.featured && (
+                <div className="absolute top-4 right-4 bg-[#00E5FF] text-[#07070C] text-xs font-bold px-3 py-1 rounded-full">Popular</div>
+              )}
+              <div className="text-4xl mb-4">{card.icon}</div>
+              <div className="font-black text-2xl tracking-tight mb-2 font-[family-name:var(--font-syne)]">{card.name}</div>
+              <div className="text-sm text-[#6B6B80] mb-5 leading-relaxed">{card.desc}</div>
+              <div className="font-black text-5xl tracking-tight mb-1 font-[family-name:var(--font-syne)]">${card.price}</div>
+              <div className="text-xs text-[#6B6B80] mb-6">USD · one-time payment</div>
+              <ul className="mb-7 space-y-1">
+                {card.features.map((f, j) => (
+                  <li key={j} className="flex items-center gap-2 text-sm text-white/80 py-1.5 border-b border-[#1C1C2E] last:border-0">
+                    <span className="text-[#00E5FF] text-xs">✓</span>{f}
+                  </li>
+                ))}
+              </ul>
+              <Button
+                variant={card.featured ? 'primary' : 'outline'}
+                onClick={() => handleBuy(card.type)}
+                loading={loading === card.type}
+                disabled={loading !== null}
+                fullWidth
+                size="lg"
+              >
+                {loading === card.type ? 'Redirecting...' : `Buy ${card.name} →`}
+              </Button>
+            </Card>
+          ))}
         </div>
-        <p className="secure">🔒 Secure payment with Stripe · Your information is protected</p>
+
+        <p className="text-center text-xs text-[#6B6B80] mt-8">🔒 Secure payment with Stripe · Your information is protected</p>
       </div>
-    </>
+    </div>
   )
 }

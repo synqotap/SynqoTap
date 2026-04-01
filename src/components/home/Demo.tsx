@@ -72,7 +72,7 @@ export default function Demo() {
                 className="w-[72px] h-[72px] rounded-full flex items-center justify-center font-black text-xl text-white flex-shrink-0 font-[family-name:var(--font-syne)]"
                 style={{ background: 'linear-gradient(135deg,#00E5FF,#7B61FF)', border: '3px solid #07070C', position: 'relative', zIndex: 2 }}
               >
-                AR
+                HV
               </div>
               <div className="mb-1 inline-flex items-center gap-1.5 bg-[#00E5FF] text-[#07070C] text-xs font-bold px-3 py-2 rounded-full font-[family-name:var(--font-syne)]">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">
@@ -82,9 +82,9 @@ export default function Demo() {
               </div>
             </div>
             <div className="px-5 pt-3 pb-3">
-              <div className="font-black text-lg mb-0.5 font-[family-name:var(--font-syne)]">Alex Rivera</div>
-              <div className="text-sm font-medium mb-0.5 text-[#00E5FF]">CEO & Founder</div>
-              <div className="text-sm text-[#6B6B80]">TechCorp Solutions</div>
+              <div className="font-black text-lg mb-0.5 font-[family-name:var(--font-syne)]">Humberto Villiva</div>
+              <div className="text-sm font-medium mb-0.5 text-[#00E5FF]">Tax Advisor</div>
+              <div className="text-sm text-[#6B6B80]">SynqoTap Demo</div>
             </div>
             <div className="border-t border-[#1C1C2E] mx-5" />
             <div className="px-5 py-4 space-y-2">

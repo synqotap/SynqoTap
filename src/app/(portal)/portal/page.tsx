@@ -16,6 +16,7 @@ type Tab = 'profile' | 'design' | 'buttons' | 'orders'
 export default function PortalPage() {
   const [tab, setTab] = useState<Tab>('profile')
   const [showPreview, setShowPreview] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const { userId, email, isLoading: authLoading } = useAuth({ requireAuth: true })
   const { profile, setProfile, customer, loading, saving, saved, save } = useProfile(userId)
@@ -89,12 +90,12 @@ export default function PortalPage() {
 
               <Card className="mb-4">
                 <div className="flex items-center justify-between bg-[#13131F] border border-[#22223A] rounded-xl px-4 py-3 mb-4">
-                  <span className="font-mono text-xs text-[#00E5FF] truncate">{profileUrl}</span>
+                  <a href={profileUrl} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-[#00E5FF] truncate hover:underline">{profileUrl}</a>
                   <button
-                    onClick={() => navigator.clipboard.writeText(profileUrl)}
+                    onClick={() => { navigator.clipboard.writeText(profileUrl); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
                     className="text-xs px-2.5 py-1 rounded-lg bg-[#00E5FF]/10 border border-[#00E5FF]/20 text-[#00E5FF] ml-3 flex-shrink-0"
                   >
-                    Copy
+                    {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-3">

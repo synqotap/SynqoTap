@@ -44,10 +44,9 @@ export async function sendPurchaseConfirmation({ email, name, cardType, slug, te
     <div style="background:#13131F;border:1px solid #22223A;border-radius:12px;padding:20px;margin-bottom:24px">
       <p style="color:#6B6B80;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:0 0 14px">Your login credentials</p>
       <p style="color:#F2F2F4;font-size:14px;margin:0 0 10px">📧 Email: <strong>${email}</strong></p>
-      <p style="color:#6B6B80;font-size:12px;margin:0 0 8px">Temporary password (tap to copy):</p>
-      <div style="background:#07070C;border:1px solid rgba(0,229,255,0.3);border-radius:8px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="navigator.clipboard.writeText('${tempPassword}');this.style.borderColor='#00E5FF'">
-        <code style="color:#00E5FF;font-size:18px;font-weight:bold;letter-spacing:2px;font-family:monospace">${tempPassword}</code>
-        <span style="color:#6B6B80;font-size:12px;margin-left:12px;white-space:nowrap">tap to copy</span>
+      <p style="color:#FF9F43;font-size:12px;font-weight:bold;margin:0 0 8px">⚠️ Copy this password before clicking the button below:</p>
+      <div style="background:#07070C;border:1px solid rgba(0,229,255,0.3);border-radius:8px;padding:16px;text-align:center">
+        <code style="color:#00E5FF;font-size:24px;font-weight:bold;letter-spacing:4px;font-family:monospace">${tempPassword}</code>
       </div>
       <p style="color:#3A3A50;font-size:12px;margin:10px 0 0">You'll be asked to change this when you first login.</p>
     </div>
@@ -59,11 +58,13 @@ export async function sendPurchaseConfirmation({ email, name, cardType, slug, te
 
   <div style="background:#0E0E16;border:1px solid #22223A;border-radius:12px;padding:20px;margin-bottom:20px">
     <p style="color:#6B6B80;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:0 0 14px">What happens next?</p>
-    ${['Login and customize your profile — name, buttons, logo.', 'We program your NFC card within 1-3 business days.', 'You receive your card ready to use. Start sharing your contact!'].map((s, i) => `
-    <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #1C1C2E">
-      <span style="width:20px;height:20px;border-radius:50%;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:#00E5FF;font-size:11px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-width:20px;text-align:center;line-height:20px">${i + 1}</span>
-      <span style="color:#F2F2F4;font-size:14px">${s}</span>
-    </div>`).join('')}
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      ${['Login and customize your profile — name, buttons, logo.', 'We program your NFC card within 1-3 business days.', 'You receive your card ready to use. Start sharing your contact!'].map((s, i, arr) => `
+      <tr>
+        <td style="width:28px;min-width:28px;padding:10px 10px 10px 0;color:#00E5FF;font-size:14px;font-weight:bold;vertical-align:top;${i < arr.length - 1 ? 'border-bottom:1px solid #1C1C2E;' : ''}">${i + 1}.</td>
+        <td style="color:#F2F2F4;font-size:14px;padding:10px 0;vertical-align:top;${i < arr.length - 1 ? 'border-bottom:1px solid #1C1C2E;' : ''}">${s}</td>
+      </tr>`).join('')}
+    </table>
   </div>
 
   <p style="text-align:center;color:#3A3A50;font-size:12px">

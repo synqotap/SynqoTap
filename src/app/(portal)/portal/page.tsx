@@ -20,24 +20,19 @@ export default function PortalPage() {
 
   const { userId, email, isLoading: authLoading } = useAuth({ requireAuth: true })
   const { profile, setProfile, customer, loading, saving, saved, save } = useProfile(userId)
-
-  useEffect(() => {
-    if (!loading && customer?.force_password_change) {
-      supabase.from('customers').update({ force_password_change: false }).eq('id', customer.id)
-      window.location.href = '/portal/settings?first=true'
-    }
-  }, [loading, customer])
+  const supabase = createClient()
   const { buttons, add, toggle, remove } = useButtons(profile?.id ?? null)
   const { orders } = useOrders(customer?.id ?? null)
   const { upload, uploadingAvatar, uploadingCover } = useImageUpload(profile?.id ?? null)
-  const supabase = createClient()
 
   useEffect(() => {
     if (!loading && customer?.force_password_change) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(supabase as any).from('customers').update({ force_password_change: false }).eq('id', customer.id)
-      window.location.href = '/portal/settings?first=true'
+      supabase.from('customers')
+        .update({ force_password_change: false })
+        .eq('id', customer.id)
+        .then(() => { window.location.href = '/portal/settings?first=true' })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, customer])
 
   const isAdmin = email === ADMIN_EMAIL

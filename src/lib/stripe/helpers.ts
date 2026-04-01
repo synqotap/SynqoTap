@@ -16,7 +16,8 @@ export function generateTempPassword(): string {
   const upper = Math.random().toString(36).substring(2, 6).toUpperCase()
   const lower = Math.random().toString(36).substring(2, 5)
   const nums = Math.floor(Math.random() * 900 + 100).toString()
-  return `${upper}${lower}${nums}!`
+  const special = '!'
+  return `${upper}${special}${lower}${nums}`
 }
 
 export function getCardUnitPrice(cardType: string): number {

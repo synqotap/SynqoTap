@@ -79,8 +79,8 @@ export default function Hero() {
               <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at 30% 50%,rgba(0,229,255,0.12),transparent 60%)' }} />
               <div className="absolute inset-0" style={{ background: 'linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.06) 50%,transparent 60%)', animation: 'shimmer 3s infinite' }} />
               <div className="absolute top-7 left-6 w-9 h-6 rounded-md" style={{ background: 'linear-gradient(135deg,#C8A04B,#E8C87A,#B8903C)' }} />
-              <div className="absolute bottom-8 left-6 font-bold text-sm tracking-widest text-white font-[family-name:var(--font-syne)]">ALEX RIVERA</div>
-              <div className="absolute bottom-3 left-6 text-xs text-white/40 tracking-widest uppercase">CEO · TECHCORP</div>
+              <div className="absolute bottom-8 left-6 font-bold text-sm tracking-widest text-white font-[family-name:var(--font-syne)]">HUMBERTO VILLIVA</div>
+              <div className="absolute bottom-3 left-6 text-xs text-white/40 tracking-widest uppercase">TAX ADVISOR · SYNQOTAP</div>
             </div>
             <div className="absolute top-2 right-0 sm:right-4 bg-[#13131F] border border-[#22223A] rounded-xl px-3 py-2 flex items-center gap-2 text-xs shadow-xl" style={{ animation: 'float 4s ease-in-out infinite' }}>
               <span className="w-2 h-2 rounded-full bg-[#00E5FF] flex-shrink-0" />

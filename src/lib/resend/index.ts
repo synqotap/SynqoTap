@@ -46,7 +46,7 @@ export async function sendPurchaseConfirmation({ email, name, cardType, slug, te
       <p style="color:#F2F2F4;font-size:14px;margin:0 0 10px">📧 Email: <strong>${email}</strong></p>
       <p style="color:#FF9F43;font-size:12px;font-weight:bold;margin:0 0 8px">⚠️ Copy this password before clicking the button below:</p>
       <div style="background:#07070C;border:1px solid rgba(0,229,255,0.3);border-radius:8px;padding:16px;text-align:center">
-        <code style="color:#00E5FF;font-size:24px;font-weight:bold;letter-spacing:4px;font-family:monospace">${tempPassword}</code>
+        <code style="color:#00E5FF;font-size:24px;font-weight:bold;letter-spacing:4px;font-family:monospace">&nbsp;${tempPassword}&nbsp;</code>
       </div>
       <p style="color:#3A3A50;font-size:12px;margin:10px 0 0">You'll be asked to change this when you first login.</p>
     </div>

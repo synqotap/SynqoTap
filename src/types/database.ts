@@ -15,6 +15,7 @@ export type Database = {
           plan: string
           created_at: string
           updated_at: string
+          force_password_change: boolean | null
         }
         Insert: {
           id?: string
@@ -34,6 +35,7 @@ export type Database = {
           phone?: string | null
           plan?: string
           updated_at?: string
+          force_password_change?: boolean | null
         }
       }
       profiles: {

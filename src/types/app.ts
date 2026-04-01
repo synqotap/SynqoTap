@@ -5,6 +5,7 @@ export type Customer = {
   full_name: string | null
   phone: string | null
   plan: string
+  force_password_change: boolean
   created_at: string
   updated_at: string
 }

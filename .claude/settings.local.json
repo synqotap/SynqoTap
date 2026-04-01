@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xxd \"d:/Apps/New folder/smartcard/src/types/database.ts\")"
+    ]
+  }
+}

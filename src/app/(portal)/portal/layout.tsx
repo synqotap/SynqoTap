@@ -13,22 +13,6 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         window.location.href = '/login'
         return
       }
-
-      const { data: customer } = await supabase
-        .from('customers')
-        .select('id, force_password_change')
-        .eq('user_id', user.id)
-        .single()
-
-      if (customer?.force_password_change === true) {
-        await supabase
-          .from('customers')
-          .update({ force_password_change: false })
-          .eq('id', customer.id)
-        window.location.href = '/portal/settings?first=true'
-        return
-      }
-
       setChecked(true)
     }
     check()

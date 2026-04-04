@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Button, Input, Card } from '@/components/ui'
 
 export default function SettingsPage() {
   const supabase = createClient()
@@ -44,9 +43,9 @@ export default function SettingsPage() {
   const strengthWidths = ['0%', '25%', '60%', '100%']
 
   return (
-    <div className="min-h-screen bg-[#07070C] text-[#F2F2F4] font-[family-name:var(--font-dm-sans)]">
+    <div className="min-h-screen bg-[#07070C] text-[#F2F2F4] font-dm-sans">
       <header className="bg-[#0E0E16] border-b border-[#1C1C2E] px-6 h-14 flex items-center justify-between sticky top-0 z-10">
-        <a href="/" className="text-lg font-black tracking-tight font-[family-name:var(--font-syne)]">
+        <a href="/" className="font-syne font-black text-lg">
           Synqo<span className="text-[#00E5FF]">Tap</span>
         </a>
         <a href="/portal" className="text-sm text-[#6B6B80] hover:text-[#F2F2F4] transition-colors">
@@ -57,16 +56,18 @@ export default function SettingsPage() {
       <div className="max-w-md mx-auto px-5 py-12">
         {isFirstLogin && (
           <div className="bg-[#00E5FF]/[0.08] border border-[#00E5FF]/20 rounded-xl px-5 py-4 mb-6 text-sm leading-relaxed">
-            👋 <strong className="text-[#00E5FF]">Welcome to SynqoTap.</strong> For your security, please create a personal password before continuing.
+            👋 <strong className="text-[#00E5FF]">Welcome to SynqoTap.</strong> Please create a personal password before continuing.
           </div>
         )}
 
-        <Card>
-          <h1 className="text-xl font-black tracking-tight mb-2 font-[family-name:var(--font-syne)]">
+        <div className="bg-[#0E0E16] border border-[#22223A] rounded-2xl p-8">
+          <h1 className="font-syne font-black text-xl tracking-tight mb-2">
             {isFirstLogin ? 'Create your password' : 'Change password'}
           </h1>
           <p className="text-sm text-[#6B6B80] mb-6">
-            {isFirstLogin ? 'Choose a secure password to access your portal.' : 'Update your portal access password.'}
+            {isFirstLogin
+              ? 'Choose a secure password to access your portal.'
+              : 'Update your portal access password.'}
           </p>
 
           <div className="text-xs text-[#6B6B80] bg-[#13131F] border border-[#22223A] rounded-xl px-4 py-3 mb-5">
@@ -75,7 +76,7 @@ export default function SettingsPage() {
 
           {success ? (
             <div className="bg-[#1D9E75]/10 border border-[#1D9E75]/30 rounded-xl px-4 py-4 text-sm text-[#5DCAA5] text-center">
-              ✓ Password updated successfully. Redirecting to portal...
+              ✓ Password updated. Redirecting to portal...
             </div>
           ) : (
             <form onSubmit={handleChange} className="flex flex-col gap-4">
@@ -84,21 +85,23 @@ export default function SettingsPage() {
                   {error}
                 </div>
               )}
+
               <div>
+                <label className="text-xs text-[#6B6B80] mb-1.5 block">New password</label>
                 <div className="relative">
-                  <Input
-                    label="New password"
+                  <input
                     type={showPass ? 'text' : 'password'}
                     value={password}
-                    onChange={setPassword}
+                    onChange={e => setPassword(e.target.value)}
                     placeholder="Minimum 8 characters"
                     required
                     autoComplete="new-password"
+                    className="w-full bg-[#13131F] border border-[#22223A] rounded-xl px-4 py-3 text-sm text-[#F2F2F4] placeholder:text-[#3A3A50] focus:outline-none focus:border-[#00E5FF] transition-colors pr-16"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 bottom-3 text-xs text-[#6B6B80]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#6B6B80] hover:text-[#F2F2F4]"
                   >
                     {showPass ? 'Hide' : 'Show'}
                   </button>
@@ -117,15 +120,17 @@ export default function SettingsPage() {
                   </div>
                 )}
               </div>
+
               <div>
-                <Input
-                  label="Confirm password"
+                <label className="text-xs text-[#6B6B80] mb-1.5 block">Confirm password</label>
+                <input
                   type="password"
                   value={confirm}
-                  onChange={setConfirm}
+                  onChange={e => setConfirm(e.target.value)}
                   placeholder="Repeat your password"
                   required
                   autoComplete="new-password"
+                  className="w-full bg-[#13131F] border border-[#22223A] rounded-xl px-4 py-3 text-sm text-[#F2F2F4] placeholder:text-[#3A3A50] focus:outline-none focus:border-[#00E5FF] transition-colors"
                 />
                 {confirm && (
                   <p className="text-xs mt-1" style={{ color: password === confirm ? '#5DCAA5' : '#F09595' }}>
@@ -133,12 +138,24 @@ export default function SettingsPage() {
                   </p>
                 )}
               </div>
-              <Button type="submit" loading={loading} fullWidth size="lg">
-                {isFirstLogin ? 'Create password and enter →' : 'Update password →'}
-              </Button>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#00E5FF] text-[#07070C] font-syne font-bold py-3.5 rounded-full hover:opacity-85 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-[#07070C]/20 border-t-[#07070C] animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  isFirstLogin ? 'Create password and enter →' : 'Update password →'
+                )}
+              </button>
             </form>
           )}
-        </Card>
+        </div>
       </div>
     </div>
   )

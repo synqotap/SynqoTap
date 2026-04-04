@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Profile, Customer } from '@/types/app'
+import type { Profile, Customer } from '@/types/app'
 import { getCustomerByUserId } from '@/services/customers'
 import { getProfileByCustomerId, updateProfile } from '@/services/profiles'
 

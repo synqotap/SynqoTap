@@ -1,8 +1,7 @@
-import { SupabaseClient } from '@supabase/supabase-js'
-import { Profile } from '@/types/app'
+import type { Profile, ProfileWithButtons } from '@/types/app'
 
 export async function getProfileByCustomerId(
-  supabase: SupabaseClient,
+  supabase: any,
   customerId: string
 ): Promise<Profile | null> {
   const { data } = await supabase
@@ -14,9 +13,9 @@ export async function getProfileByCustomerId(
 }
 
 export async function getProfileBySlug(
-  supabase: SupabaseClient,
+  supabase: any,
   slug: string
-): Promise<Profile | null> {
+): Promise<ProfileWithButtons | null> {
   const { data } = await supabase
     .from('profiles')
     .select('*, profile_buttons(*)')
@@ -26,19 +25,43 @@ export async function getProfileBySlug(
   return data
 }
 
+export async function createProfile(
+  supabase: any,
+  customerId: string,
+  slug: string
+): Promise<Profile | null> {
+  const { data } = await supabase
+    .from('profiles')
+    .insert({ customer_id: customerId, slug })
+    .select()
+    .single()
+  return data
+}
+
 export async function updateProfile(
-  supabase: SupabaseClient,
+  supabase: any,
   profileId: string,
   updates: Partial<Profile>
 ): Promise<void> {
-  await supabase
+  const { error } = await supabase
     .from('profiles')
     .update(updates)
+    .eq('id', profileId)
+  if (error) console.error('[updateProfile] error:', error.message, error.details ?? '')
+}
+
+export async function deleteProfile(
+  supabase: any,
+  profileId: string
+): Promise<void> {
+  await supabase
+    .from('profiles')
+    .delete()
     .eq('id', profileId)
 }
 
 export async function incrementProfileView(
-  supabase: SupabaseClient,
+  supabase: any,
   slug: string
 ): Promise<void> {
   await supabase.rpc('increment_view', { profile_slug: slug })

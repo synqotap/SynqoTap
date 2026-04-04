@@ -1,6 +1,6 @@
 'use client'
 import { OrderWithRelations, ORDER_STATUS_CONFIG, OrderStatus } from '@/types/app'
-import { Badge, Input, Select } from '@/components/ui'
+import { Badge } from '@/components/ui'
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'All statuses' },
@@ -11,6 +11,7 @@ const STATUS_OPTIONS = [
   { value: 'shipped', label: 'Shipped' },
   { value: 'delivered', label: 'Delivered' },
   { value: 'cancelled', label: 'Cancelled' },
+  { value: 'refunded', label: 'Refunded' },
 ]
 
 type OrdersTableProps = {
@@ -28,10 +29,11 @@ export default function OrdersTable({
   onSelect, onSearchChange, onStatusChange
 }: OrdersTableProps) {
   const filtered = orders.filter(o => {
+    const q = search.toLowerCase()
     const matchSearch = !search
-      || o.customers?.email?.includes(search)
-      || o.customers?.full_name?.toLowerCase().includes(search.toLowerCase())
-      || o.profiles?.slug?.includes(search)
+      || o.customers?.email?.toLowerCase().includes(q)
+      || o.customers?.full_name?.toLowerCase().includes(q)
+      || o.profiles?.slug?.toLowerCase().includes(q)
     const matchStatus = filterStatus === 'all' || o.status === filterStatus
     return matchSearch && matchStatus
   })
@@ -39,20 +41,21 @@ export default function OrdersTable({
   return (
     <div>
       <div className="flex gap-3 mb-4 flex-wrap">
-        <div className="flex-1 min-w-[180px]">
-          <Input
-            value={search}
-            onChange={onSearchChange}
-            placeholder="Search by email, name or slug..."
-          />
-        </div>
-        <div className="w-44">
-          <Select
-            value={filterStatus}
-            onChange={onStatusChange}
-            options={STATUS_OPTIONS}
-          />
-        </div>
+        <input
+          value={search}
+          onChange={e => onSearchChange(e.target.value)}
+          placeholder="Search by email, name or slug..."
+          className="flex-1 min-w-[200px] bg-[#0E0E16] border border-[#22223A] rounded-xl px-4 py-2.5 text-sm text-[#F2F2F4] placeholder:text-[#3A3A50] focus:outline-none focus:border-[#00E5FF] transition-colors"
+        />
+        <select
+          value={filterStatus}
+          onChange={e => onStatusChange(e.target.value)}
+          className="bg-[#0E0E16] border border-[#22223A] rounded-xl px-3 py-2.5 text-sm text-[#F2F2F4] focus:outline-none focus:border-[#00E5FF] transition-colors"
+        >
+          {STATUS_OPTIONS.map(o => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
       </div>
 
       {filtered.length === 0 ? (
@@ -76,16 +79,20 @@ export default function OrdersTable({
                   <tr
                     key={order.id}
                     onClick={() => onSelect(order)}
-                    className={`cursor-pointer transition-colors ${selectedId === order.id ? 'bg-[#00E5FF]/[0.05]' : 'hover:bg-[#0E0E16]'}`}
+                    className={`cursor-pointer transition-colors ${
+                      selectedId === order.id
+                        ? 'bg-[#00E5FF]/[0.05]'
+                        : 'hover:bg-[#0E0E16]'
+                    }`}
                   >
                     <td className="px-3 py-3 border-b border-[#1C1C2E]">
-                      <div className="text-sm font-medium text-[#F2F2F4]">{order.customers?.full_name || '—'}</div>
+                      <div className="text-sm font-medium">{order.customers?.full_name || '—'}</div>
                       <div className="text-xs text-[#6B6B80]">{order.customers?.email}</div>
                     </td>
-                    <td className="px-3 py-3 border-b border-[#1C1C2E] text-xs font-medium uppercase text-[#F2F2F4]">
+                    <td className="px-3 py-3 border-b border-[#1C1C2E] text-xs font-medium uppercase">
                       {order.card_type}
                     </td>
-                    <td className="px-3 py-3 border-b border-[#1C1C2E] text-sm text-[#F2F2F4]">
+                    <td className="px-3 py-3 border-b border-[#1C1C2E] text-sm">
                       ${order.total_amount}
                     </td>
                     <td className="px-3 py-3 border-b border-[#1C1C2E]">
@@ -96,7 +103,9 @@ export default function OrdersTable({
                       />
                     </td>
                     <td className="px-3 py-3 border-b border-[#1C1C2E] text-xs text-[#6B6B80]">
-                      {new Date(order.created_at).toLocaleDateString('en', { day: 'numeric', month: 'short' })}
+                      {new Date(order.created_at).toLocaleDateString('en', {
+                        day: 'numeric', month: 'short'
+                      })}
                     </td>
                   </tr>
                 )

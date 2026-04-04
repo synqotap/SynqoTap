@@ -1,4 +1,5 @@
-import Spinner from './Spinner'
+'use client'
+import { Spinner } from './Spinner'
 
 type ButtonVariant = 'primary' | 'outline' | 'ghost' | 'danger'
 type ButtonSize = 'sm' | 'md' | 'lg'
@@ -15,41 +16,38 @@ type ButtonProps = {
   className?: string
 }
 
-const VARIANT_STYLES: Record<ButtonVariant, string> = {
-  primary: 'bg-[#00E5FF] text-[#07070C] hover:opacity-85 font-bold',
+const VARIANT_CLASSES: Record<ButtonVariant, string> = {
+  primary: 'bg-[#00E5FF] text-[#07070C] hover:opacity-85',
   outline: 'border border-[#22223A] text-[#F2F2F4] hover:border-[#00E5FF]/40 hover:text-[#00E5FF]',
   ghost:   'text-[#6B6B80] hover:text-[#F2F2F4] hover:bg-[#13131F]',
   danger:  'border border-[#E24B4A]/30 text-[#F09595] hover:bg-[#E24B4A]/10',
 }
 
-const SIZE_STYLES: Record<ButtonSize, string> = {
-  sm: 'text-xs px-3 py-1.5 rounded-lg',
-  md: 'text-sm px-5 py-2.5 rounded-full',
-  lg: 'text-base px-7 py-3.5 rounded-full',
+const SIZE_CLASSES: Record<ButtonSize, string> = {
+  sm: 'px-3 py-1.5 text-xs',
+  md: 'px-4 py-2.5 text-sm',
+  lg: 'px-6 py-3.5 text-sm',
 }
 
-export default function Button({
-  children, variant = 'primary', size = 'md',
-  loading = false, disabled = false, fullWidth = false,
-  type = 'button', onClick, className = ''
+export function Button({
+  children,
+  variant = 'primary',
+  size = 'md',
+  loading,
+  disabled,
+  fullWidth,
+  type = 'button',
+  onClick,
+  className = '',
 }: ButtonProps) {
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      className={`
-        inline-flex items-center justify-center gap-2
-        font-[family-name:var(--font-syne)]
-        transition-all duration-200
-        disabled:opacity-50 disabled:cursor-not-allowed
-        ${VARIANT_STYLES[variant]}
-        ${SIZE_STYLES[size]}
-        ${fullWidth ? 'w-full' : ''}
-        ${className}
-      `}
+      className={`inline-flex items-center justify-center gap-2 rounded-full font-syne font-bold transition-all duration-200 disabled:opacity-50 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
     >
-      {loading && <Spinner dark={variant === 'primary'} />}
+      {loading && <Spinner size="sm" dark={variant === 'primary'} />}
       {children}
     </button>
   )

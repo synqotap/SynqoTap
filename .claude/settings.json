@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(for f:*)",
+      "Bash(do)",
+      "Bash(sed -i \"s|import { SupabaseClient } from ''@supabase/supabase-js''|import { SupabaseClient } from ''@supabase/supabase-js''\\\\nimport type { Database } from ''@/types/database''|\" \"d:/Apps/New folder/smartcard/src/services/$f.ts\")",
+      "Bash(sed -i \"s|supabase: SupabaseClient|supabase: SupabaseClient<Database>|g\" \"d:/Apps/New folder/smartcard/src/services/$f.ts\")",
+      "Bash(done)",
+      "Bash(grep -v \"^$\")",
+      "Bash(find 'd:/Apps/New folder/smartcard/node_modules/@supabase/ssr' -name *.d.*)",
+      "Bash(file=\"d:/Apps/New folder/smartcard/src/services/$f.ts\")",
+      "Bash(sed -i \"s|import type { AppSupabaseClient } from ''@/types/database''|import type { AppSupabaseClient } from ''@/lib/supabase/client''|\" \"$file\")",
+      "Bash(sed -i \"s|import type { AppSupabaseClient } from ''@/lib/supabase/client''|import { SupabaseClient } from ''@supabase/supabase-js''|\" \"$file\")",
+      "Bash(sed -i \"s|supabase: AppSupabaseClient|supabase: SupabaseClient<any>|g\" \"$file\")",
+      "Bash(sed -i \"s|import { SupabaseClient } from ''@supabase/supabase-js''||\" \"$file\")",
+      "Bash(sed -i \"s|supabase: SupabaseClient<any>|supabase: any|g\" \"$file\")",
+      "Bash(ls \"d:/Apps/New folder/smartcard/src/app/\\(portal\\)/portal/\")",
+      "Bash(ls \"d:/Apps/New folder/smartcard/src/app/\\(portal\\)/\")",
+      "Bash(node -e \"const p=require\\(''./package.json''\\); const deps={...p.dependencies,...p.devDependencies}; [''@hello-pangea/dnd'',''qrcode'',''@types/qrcode''].forEach\\(k=>console.log\\(k+'':'', deps[k]||''NOT INSTALLED''\\)\\)\")",
+      "Read(//d/Apps/**)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(npm show:*)",
+      "Bash(npm install:*)",
+      "Bash(node -e \"const {SiInstagram} = require\\(''react-icons/si''\\); console.log\\(typeof SiInstagram\\)\")",
+      "Bash(node -e \":*)",
+      "Bash(node -e \"const p = require\\(''./node_modules/@supabase/supabase-js/package.json''\\); console.log\\(p.version\\)\")",
+      "Bash(node -e \"const p = require\\(''./node_modules/@supabase/ssr/package.json''\\); console.log\\(p.version\\)\")"
+    ]
+  }
+}

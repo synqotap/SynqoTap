@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/client'
 import { OrderWithRelations } from '@/types/app'
 import { getAllOrdersWithRelations, updateOrderStatus } from '@/services/orders'
 import { saveShipment } from '@/services/admin'
-import { AdminTopbar } from '@/components/layout'
 import { StatsGrid, OrdersTable, OrderDetail } from '@/components/admin'
 import { Modal } from '@/components/ui'
 
@@ -32,13 +31,39 @@ export default function AdminPage() {
 
   async function handleStatusChange(orderId: string, status: string) {
     await updateOrderStatus(supabase, orderId, status)
-    setOrders(orders.map(o => o.id === orderId ? { ...o, status } : o))
-    if (selected?.id === orderId) setSelected({ ...selected, status })
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o))
+    if (selected?.id === orderId) setSelected(prev => prev ? { ...prev, status } : null)
   }
 
-  async function handleSaveTracking(orderId: string, carrier: string, tracking: string) {
-    await saveShipment(supabase, orderId, carrier, tracking)
+  async function handleSaveTracking(
+    orderId: string,
+    carrier: string,
+    tracking: string,
+    trackingUrl?: string
+  ) {
+    await saveShipment(supabase, orderId, carrier, tracking, trackingUrl)
     await handleStatusChange(orderId, 'shipped')
+
+    const order = orders.find(o => o.id === orderId)
+    if (order?.customers?.email && order?.profiles?.slug) {
+      try {
+        await fetch('/api/admin/send-shipping', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: order.customers.email,
+            name: order.customers.full_name || 'Customer',
+            trackingNumber: tracking,
+            trackingUrl,
+            carrier,
+            slug: order.profiles.slug,
+          }),
+        })
+      } catch (err) {
+        console.error('Failed to send shipping email:', err)
+      }
+    }
+
     alert('Tracking saved and order marked as Shipped.')
     load()
   }
@@ -49,7 +74,9 @@ export default function AdminPage() {
     { value: orders.filter(o => o.status === 'shipped').length, label: 'Shipped', color: '#639922' },
     { value: orders.filter(o => o.status === 'delivered').length, label: 'Delivered', color: '#1D9E75' },
     {
-      value: `$${orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + Number(o.total_amount), 0)}`,
+      value: `$${orders
+        .filter(o => !['cancelled', 'refunded'].includes(o.status))
+        .reduce((s, o) => s + Number(o.total_amount), 0)}`,
       label: 'Revenue USD',
       color: '#EF9F27',
     },
@@ -57,15 +84,28 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#07070C] flex items-center justify-center text-sm text-[#6B6B80] font-[family-name:var(--font-dm-sans)]">
-        Loading orders...
+      <div className="min-h-screen bg-[#07070C] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-[#00E5FF]/20 border-t-[#00E5FF] animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#07070C] text-[#F2F2F4] font-[family-name:var(--font-dm-sans)]">
-      <AdminTopbar />
+    <div className="min-h-screen bg-[#07070C] text-[#F2F2F4] font-dm-sans">
+      {/* Topbar */}
+      <header className="bg-[#0E0E16] border-b border-[#1C1C2E] px-4 sm:px-6 h-14 flex items-center justify-between sticky top-0 z-20">
+        <div className="flex items-center gap-3">
+          <a href="/" className="font-syne font-black text-lg">
+            Synqo<span className="text-[#00E5FF]">Tap</span>
+          </a>
+          <span className="text-xs font-medium px-2 py-0.5 rounded bg-[#E24B4A]/15 border border-[#E24B4A]/30 text-[#F09595]">
+            ADMIN
+          </span>
+        </div>
+        <a href="/portal" className="text-sm text-[#6B6B80] hover:text-[#F2F2F4] transition-colors">
+          Customer portal
+        </a>
+      </header>
 
       <div className="flex" style={{ minHeight: 'calc(100vh - 56px)' }}>
         {/* Main */}
@@ -82,7 +122,7 @@ export default function AdminPage() {
           />
         </div>
 
-        {/* Desktop sidebar */}
+        {/* Desktop sidebar detail */}
         <div className="hidden lg:block w-[380px] border-l border-[#1C1C2E] bg-[#0E0E16] p-6 overflow-y-auto">
           {selected ? (
             <OrderDetail

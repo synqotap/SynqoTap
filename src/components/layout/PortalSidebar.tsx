@@ -1,63 +1,54 @@
-'use client'
-
-type Tab = 'profile' | 'design' | 'buttons' | 'orders' | 'settings'
-
-type NavItem = {
-  tab: Tab
-  label: string
-  icon: string
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { tab: 'profile',  label: 'My profile',     icon: '👤' },
-  { tab: 'design',   label: 'Design',          icon: '🎨' },
-  { tab: 'buttons',  label: 'Buttons',         icon: '🔘' },
-  { tab: 'orders',   label: 'My orders',       icon: '📦' },
-]
+type Tab = 'profile' | 'design' | 'buttons' | 'orders'
 
 type PortalSidebarProps = {
   activeTab: Tab
   onTabChange: (tab: Tab) => void
-  profileSlug?: string
+  profileSlug: string
 }
 
-export default function PortalSidebar({ activeTab, onTabChange, profileSlug }: PortalSidebarProps) {
+const NAV_ITEMS: { tab: Tab; label: string; icon: string }[] = [
+  { tab: 'profile', label: 'Profile', icon: '👤' },
+  { tab: 'design',  label: 'Design',  icon: '🎨' },
+  { tab: 'buttons', label: 'Buttons', icon: '🔗' },
+  { tab: 'orders',  label: 'Orders',  icon: '📦' },
+]
+
+export function PortalSidebar({ activeTab, onTabChange, profileSlug }: PortalSidebarProps) {
   return (
-    <aside className="bg-[#0E0E16] border-r border-[#1C1C2E] w-[220px] min-h-full p-4 flex-col hidden md:flex">
-      <nav className="flex flex-col gap-1 flex-1">
-        {NAV_ITEMS.map(item => (
+    <aside
+      className="hidden md:flex flex-col border-r border-[#1C1C2E] bg-[#0E0E16]"
+      style={{ width: '220px', flexShrink: 0 }}
+    >
+      <nav className="flex flex-col gap-1 p-3 flex-1">
+        {NAV_ITEMS.map(({ tab, label, icon }) => (
           <button
-            key={item.tab}
-            onClick={() => onTabChange(item.tab)}
-            className={`
-              flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-left w-full
-              transition-all duration-200 font-[family-name:var(--font-dm-sans)]
-              ${activeTab === item.tab
+            key={tab}
+            onClick={() => onTabChange(tab)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors text-left w-full ${
+              activeTab === tab
                 ? 'bg-[#00E5FF]/[0.08] text-[#00E5FF]'
                 : 'text-[#6B6B80] hover:text-[#F2F2F4] hover:bg-[#13131F]'
-              }
-            `}
+            }`}
           >
-            <span>{item.icon}</span>
-            {item.label}
+            <span className="text-base">{icon}</span>
+            <span className="font-medium">{label}</span>
           </button>
         ))}
       </nav>
-      <div className="flex flex-col gap-2 pt-4 border-t border-[#1C1C2E]">
-        {profileSlug && (
-          <a
-            href={`/c/${profileSlug}`}
-            target="_blank"
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-[#6B6B80] border border-[#22223A] hover:text-[#F2F2F4] transition-colors"
-          >
-            🔗 View public profile
-          </a>
-        )}
+      <div className="p-3 border-t border-[#1C1C2E] flex flex-col gap-1">
+        <a
+          href={`/c/${profileSlug}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-[#6B6B80] hover:text-[#F2F2F4] hover:bg-[#13131F] transition-colors"
+        >
+          <span>↗</span> View public profile
+        </a>
         <a
           href="/portal/settings"
-          className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-[#6B6B80] hover:text-[#F2F2F4] hover:bg-[#13131F] transition-colors"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-[#6B6B80] hover:text-[#F2F2F4] hover:bg-[#13131F] transition-colors"
         >
-          ⚙️ Change password
+          <span>🔑</span> Change password
         </a>
       </div>
     </aside>

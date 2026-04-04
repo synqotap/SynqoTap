@@ -6,28 +6,32 @@ type BadgeProps = {
   color?: string
 }
 
-const VARIANT_STYLES: Record<BadgeVariant, string> = {
-  cyan:   'bg-[#00E5FF]/15 border-[#00E5FF]/40 text-[#00E5FF]',
-  red:    'bg-[#E24B4A]/15 border-[#E24B4A]/40 text-[#F09595]',
-  green:  'bg-[#1D9E75]/15 border-[#1D9E75]/40 text-[#5DCAA5]',
-  yellow: 'bg-[#EF9F27]/15 border-[#EF9F27]/40 text-[#EF9F27]',
-  purple: 'bg-[#7B61FF]/15 border-[#7B61FF]/40 text-[#7B61FF]',
-  custom: '',
+const VARIANT_STYLES: Record<Exclude<BadgeVariant, 'custom'>, string> = {
+  cyan:   'bg-[#00E5FF]/10 border-[#00E5FF]/30 text-[#00E5FF]',
+  red:    'bg-[#E24B4A]/10 border-[#E24B4A]/30 text-[#F09595]',
+  green:  'bg-[#1D9E75]/10 border-[#1D9E75]/30 text-[#5DCAA5]',
+  yellow: 'bg-[#EF9F27]/10 border-[#EF9F27]/30 text-[#EF9F27]',
+  purple: 'bg-[#7B61FF]/10 border-[#7B61FF]/30 text-[#7B61FF]',
 }
 
-export default function Badge({ label, variant = 'cyan', color }: BadgeProps) {
+export function Badge({ label, variant = 'cyan', color }: BadgeProps) {
   if (variant === 'custom' && color) {
     return (
       <span
-        className="text-xs font-medium px-2.5 py-1 rounded-full border whitespace-nowrap"
-        style={{ color, borderColor: `${color}40`, background: `${color}15` }}
+        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
+        style={{ background: `${color}1A`, borderColor: `${color}4D`, color }}
       >
         {label}
       </span>
     )
   }
+
   return (
-    <span className={`text-xs font-medium px-2.5 py-1 rounded-full border whitespace-nowrap ${VARIANT_STYLES[variant]}`}>
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
+        VARIANT_STYLES[variant as Exclude<BadgeVariant, 'custom'>]
+      }`}
+    >
       {label}
     </span>
   )

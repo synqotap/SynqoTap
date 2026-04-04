@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(xxd \"d:/Apps/New folder/smartcard/src/types/database.ts\")"
+      "Bash(xxd \"d:/Apps/New folder/smartcard/src/types/database.ts\")",
+      "Bash(rm -rf src/app/\\\\\\(admin\\\\\\) src/app/\\\\\\(portal\\\\\\) src/app/api src/app/c src/app/checkout src/app/login src/app/layout.tsx src/app/page.tsx)",
+      "Bash(rm -rf src/components src/hooks src/i18n src/lib/resend src/lib/stripe)",
+      "Bash(rm -rf src/services src/types/app.ts)"
     ]
   }
 }

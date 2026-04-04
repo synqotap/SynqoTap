@@ -22,18 +22,14 @@ export function useImageUpload(profileId: string | null) {
       .from('avatars')
       .upload(path, file, { upsert: true })
 
-    if (error) {
-      if (type === 'avatar') setUploadingAvatar(false)
-      else setUploadingCover(false)
-      return null
-    }
+    if (type === 'avatar') setUploadingAvatar(false)
+    else setUploadingCover(false)
+
+    if (error) return null
 
     const { data: urlData } = supabase.storage
       .from('avatars')
       .getPublicUrl(path)
-
-    if (type === 'avatar') setUploadingAvatar(false)
-    else setUploadingCover(false)
 
     return urlData.publicUrl
   }

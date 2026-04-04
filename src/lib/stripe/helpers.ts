@@ -1,4 +1,4 @@
-import Stripe from 'stripe'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 export function generateSlug(name: string): string {
   const base = name
@@ -14,12 +14,27 @@ export function generateSlug(name: string): string {
 
 export function generateTempPassword(): string {
   const upper = Math.random().toString(36).substring(2, 6).toUpperCase()
+  const special = '!'
   const lower = Math.random().toString(36).substring(2, 5)
   const nums = Math.floor(Math.random() * 900 + 100).toString()
-  const special = '!'
   return `${upper}${special}${lower}${nums}`
 }
 
 export function getCardUnitPrice(cardType: string): number {
-  return cardType === 'pvc' ? 39 : 79
+  const prices: Record<string, number> = {
+    pvc: 39,
+    metal: 79,
+    custom_pvc: 59,
+    custom_metal: 99,
+  }
+  return prices[cardType] ?? 39
+}
+
+export async function generateInvoiceNumber(supabase: SupabaseClient): Promise<string> {
+  const year = new Date().getFullYear()
+  const { count } = await supabase
+    .from('invoices')
+    .select('*', { count: 'exact', head: true })
+  const num = String((count || 0) + 1).padStart(4, '0')
+  return `SYNQO-${year}-${num}`
 }

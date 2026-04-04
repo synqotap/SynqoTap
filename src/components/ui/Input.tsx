@@ -1,6 +1,6 @@
 type InputProps = {
   label?: string
-  type?: 'text' | 'email' | 'password' | 'tel'
+  type?: string
   value: string
   onChange: (value: string) => void
   placeholder?: string
@@ -12,16 +12,22 @@ type InputProps = {
   error?: string
 }
 
-export default function Input({
-  label, type = 'text', value, onChange, placeholder,
-  required, autoComplete, autoFocus, disabled,
-  hint, error
+export function Input({
+  label,
+  type = 'text',
+  value,
+  onChange,
+  placeholder,
+  required,
+  autoComplete,
+  autoFocus,
+  disabled,
+  hint,
+  error,
 }: InputProps) {
   return (
-    <div className="flex flex-col gap-1.5">
-      {label && (
-        <label className="text-xs text-[#6B6B80]">{label}</label>
-      )}
+    <div>
+      {label && <label className="block text-xs text-[#6B6B80] mb-1.5">{label}</label>}
       <input
         type={type}
         value={value}
@@ -31,18 +37,12 @@ export default function Input({
         autoComplete={autoComplete}
         autoFocus={autoFocus}
         disabled={disabled}
-        className="
-          w-full bg-[#13131F] border border-[#22223A] rounded-xl
-          px-3.5 py-3 text-sm text-[#F2F2F4]
-          placeholder:text-[#3A3A50]
-          focus:outline-none focus:border-[#00E5FF]
-          disabled:opacity-50
-          transition-colors duration-200
-          font-[family-name:var(--font-dm-sans)]
-        "
+        className={`w-full bg-[#13131F] border rounded-xl px-4 py-3 text-sm text-[#F2F2F4] placeholder:text-[#3A3A50] focus:outline-none focus:border-[#00E5FF] transition-colors disabled:opacity-50 ${
+          error ? 'border-[#E24B4A]' : 'border-[#22223A]'
+        }`}
       />
-      {hint && !error && <p className="text-xs text-[#6B6B80]">{hint}</p>}
-      {error && <p className="text-xs text-[#F09595]">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-[#F09595]">{error}</p>}
+      {hint && !error && <p className="mt-1.5 text-xs text-[#6B6B80]">{hint}</p>}
     </div>
   )
 }

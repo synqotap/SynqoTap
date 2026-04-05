@@ -3,6 +3,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 
+// ── Stripe checkout ──────────────────────────────────────────────────────────
+
+async function handleBuy(cardType: 'pvc' | 'metal') {
+  const res = await fetch('/api/stripe/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cardType, quantity: 1 }),
+  })
+  const data = await res.json()
+  if (data.url) window.location.href = data.url
+}
+
 // ── Nav ──────────────────────────────────────────────────────────────────────
 
 function Nav() {
@@ -48,13 +60,13 @@ function Nav() {
           <Link href="/portal" className="text-sm text-[#6B6B80] hover:text-[#F2F2F4] transition-colors">
             Login
           </Link>
-          <Link
-            href="/checkout"
+          <a
+            href="/#products"
             className="text-sm font-semibold px-5 py-2 rounded-full transition-all duration-200 hover:opacity-90 active:scale-95"
             style={{ background: '#00E5FF', color: '#07070C' }}
           >
             Buy now →
-          </Link>
+          </a>
         </div>
 
         {/* Mobile hamburger */}
@@ -84,13 +96,13 @@ function Nav() {
           ))}
           <hr style={{ borderColor: '#1C1C2E' }} />
           <Link href="/portal" className="text-sm text-[#6B6B80]">Login</Link>
-          <Link
-            href="/checkout"
+          <a
+            href="/#products"
             className="text-sm font-semibold px-5 py-2.5 rounded-full text-center"
             style={{ background: '#00E5FF', color: '#07070C' }}
           >
             Buy now →
-          </Link>
+          </a>
         </div>
       )}
     </nav>
@@ -268,13 +280,13 @@ function Hero() {
 
           {/* CTAs */}
           <div className="flex flex-wrap gap-3 mb-14">
-            <Link
-              href="/checkout"
+            <a
+              href="/#products"
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-95"
               style={{ background: '#00E5FF', color: '#07070C' }}
             >
               Get my card →
-            </Link>
+            </a>
             <a
               href="#demo"
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-sm border transition-all duration-200 hover:bg-white/5"
@@ -401,7 +413,7 @@ const PRODUCTS = [
     desc: 'Durable NFC card for professionals who want a clean, effective first impression.',
     features: ['NFC + QR code', 'Unlimited profile updates', 'Custom links & socials', 'Free shipping'],
     cta: 'Buy PVC →',
-    href: '/checkout',
+    cardType: 'pvc' as const,
     featured: false,
   },
   {
@@ -411,7 +423,7 @@ const PRODUCTS = [
     desc: 'Premium brushed metal card that makes a statement. Built to last a lifetime.',
     features: ['Everything in PVC', 'Brushed stainless steel', 'Premium engraving', 'Priority shipping'],
     cta: 'Buy Metal →',
-    href: '/checkout',
+    cardType: 'metal' as const,
     featured: true,
   },
   {
@@ -421,12 +433,48 @@ const PRODUCTS = [
     desc: 'Cards for your entire team with centralized management and branded profiles.',
     features: ['Volume pricing', 'Team dashboard', 'Brand customization', 'Dedicated support'],
     cta: 'Contact us →',
-    href: 'mailto:synqotap@gmail.com',
+    cardType: null,
     featured: false,
   },
 ]
 
 function Products() {
+  const [activeIndex, setActiveIndex] = useState(1)
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  useEffect(() => {
+    const el = carouselRef.current
+    const card = cardRefs.current[1]
+    if (!el || !card) return
+    const target = card.offsetLeft + card.offsetWidth / 2 - el.clientWidth / 2
+    el.scrollLeft = target
+  }, [])
+
+  function onCarouselScroll() {
+    const el = carouselRef.current
+    if (!el) return
+    // Center of the visible viewport within the scroll container
+    const center = el.scrollLeft + el.clientWidth / 2
+    let closest = 0
+    let minDist = Infinity
+    cardRefs.current.forEach((card, i) => {
+      if (!card) return
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2
+      const dist = Math.abs(center - cardCenter)
+      if (dist < minDist) { minDist = dist; closest = i }
+    })
+    setActiveIndex(closest)
+  }
+
+  function scrollToCard(i: number) {
+    const el = carouselRef.current
+    const card = cardRefs.current[i]
+    if (!el || !card) return
+    const target = card.offsetLeft + card.offsetWidth / 2 - el.clientWidth / 2
+    el.scrollTo({ left: target, behavior: 'smooth' })
+  }
+
   return (
     <section id="products" className="py-24">
       <div className="max-w-6xl mx-auto px-5">
@@ -435,60 +483,198 @@ function Products() {
           Choose your card
         </h2>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        {/* Desktop grid */}
+        <div className="hidden md:grid md:grid-cols-3 gap-6">
           {PRODUCTS.map(p => (
-            <div
-              key={p.name}
-              className="relative rounded-2xl p-7 flex flex-col"
-              style={{
-                background: p.featured ? 'linear-gradient(145deg, #0E1A2A 0%, #0E0E16 100%)' : '#0E0E16',
-                border: p.featured ? '1px solid rgba(0,229,255,0.35)' : '1px solid #1C1C2E',
-              }}
-            >
-              {p.featured && (
-                <div
-                  className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-semibold"
-                  style={{ background: '#00E5FF', color: '#07070C' }}
-                >
-                  Most popular
-                </div>
-              )}
-
-              <div className="mb-6">
-                <p className="font-syne font-bold text-sm uppercase tracking-widest text-[#6B6B80] mb-2">{p.name}</p>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="font-syne font-bold text-4xl text-[#F2F2F4]">{p.price}</span>
-                  <span className="text-sm text-[#6B6B80]">{p.period}</span>
-                </div>
-              </div>
-
-              <p className="text-sm text-[#6B6B80] leading-relaxed mb-6">{p.desc}</p>
-
-              <ul className="flex flex-col gap-2.5 mb-8 flex-1">
-                {p.features.map(f => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-[#F2F2F4]">
-                    <span style={{ color: '#00E5FF' }}>✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              <a
-                href={p.href}
-                className="text-center py-3 rounded-xl font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-95"
-                style={
-                  p.featured
-                    ? { background: '#00E5FF', color: '#07070C' }
-                    : { background: '#13131F', color: '#F2F2F4', border: '1px solid #1C1C2E' }
-                }
-              >
-                {p.cta}
-              </a>
-            </div>
+            <ProductCard key={p.name} p={p} />
           ))}
+        </div>
+
+        {/* Mobile carousel */}
+        <div className="md:hidden">
+          <div
+            ref={carouselRef}
+            onScroll={onCarouselScroll}
+            className="flex overflow-x-auto pb-6 scrollbar-hide scroll-smooth"
+            style={{ perspective: '1000px' }}
+          >
+            {/* leading spacer so first card centers */}
+            <div className="shrink-0 w-[19vw]" />
+            {PRODUCTS.map((p, i) => (
+              <div
+                key={p.name}
+                ref={el => { cardRefs.current[i] = el }}
+                className="shrink-0 w-[62vw] max-w-[240px] -mx-4 transition-all duration-300 ease-out"
+                style={{
+                  zIndex: activeIndex === i ? 10 : 0,
+                  opacity: activeIndex === i ? 1 : 0.5,
+                  transform: activeIndex === i ? 'scale(1)' : 'scale(0.90)',
+                  pointerEvents: activeIndex === i ? 'auto' : 'none',
+                }}
+              >
+                <MobileProductCard p={p} />
+              </div>
+            ))}
+            {/* trailing spacer */}
+            <div className="shrink-0 w-[19vw]" />
+          </div>
+
+          {/* Label indicators */}
+          <div className="flex justify-center gap-6 mt-2">
+            {PRODUCTS.map((p, i) => (
+              <button
+                key={p.name}
+                onClick={() => scrollToCard(i)}
+                className="text-xs font-bold font-syne transition-colors duration-200"
+                style={{ color: activeIndex === i ? '#00E5FF' : '#3A3A50' }}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </section>
+  )
+}
+
+const MOBILE_CARD_ICONS: Record<string, string> = {
+  PVC: '💳',
+  Metal: '⚡',
+  Business: '🏢',
+}
+
+function MobileProductCard({ p }: { p: typeof PRODUCTS[number] }) {
+  return (
+    <div className="relative pt-5">
+      {p.featured && (
+        <div
+          className="absolute top-0 left-1/2 bg-[#00E5FF] text-[#07070C] font-bold text-xs px-4 py-1.5 rounded-full font-syne whitespace-nowrap"
+          style={{ transform: 'translateX(-50%)', zIndex: 20 }}
+        >
+          Most popular
+        </div>
+      )}
+      <div
+        className={`flex flex-col items-center p-5 rounded-2xl ${p.featured ? 'min-h-110' : 'min-h-105'}`}
+        style={{
+          background: p.featured ? 'linear-gradient(145deg, #0E1A2A 0%, #0E0E16 100%)' : '#0E0E16',
+          border: p.featured ? '1px solid #00E5FF' : '1px solid #1C1C2E',
+          boxShadow: p.featured ? '0 0 30px rgba(0,229,255,0.15)' : 'none',
+        }}
+      >
+        {/* Icon */}
+        <div className="text-3xl mb-3">{MOBILE_CARD_ICONS[p.name] ?? '💳'}</div>
+
+        {/* Name */}
+        <p className="font-syne font-black text-lg text-[#F2F2F4] mb-3 text-center">{p.name}</p>
+
+        {/* Price */}
+        <div className="text-center mb-4">
+          <p className="font-syne font-black text-4xl text-[#F2F2F4]">{p.price}</p>
+          <p className="text-xs text-[#6B6B80] mt-0.5">USD · one-time</p>
+        </div>
+
+        {/* Divider */}
+        <div className="w-full border-t border-[#1C1C2E] mb-4" />
+
+        {/* Features */}
+        <ul className="flex flex-col gap-2 w-full flex-1 mb-5">
+          {p.features.slice(0, 3).map(f => (
+            <li key={f} className="flex items-start gap-2 text-xs text-[#F2F2F4]">
+              <span className="shrink-0" style={{ color: '#00E5FF' }}>✓</span>
+              {f}
+            </li>
+          ))}
+        </ul>
+
+        {/* Button */}
+        {p.cardType ? (
+          <button
+            onClick={() => handleBuy(p.cardType!)}
+            className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-95 cursor-pointer"
+            style={
+              p.featured
+                ? { background: '#00E5FF', color: '#07070C' }
+                : { background: '#13131F', color: '#F2F2F4', border: '1px solid #1C1C2E' }
+            }
+          >
+            {p.cta}
+          </button>
+        ) : (
+          <a
+            href="mailto:synqotap@gmail.com"
+            className="w-full py-3 rounded-xl font-semibold text-sm text-center transition-all duration-200 active:scale-95 block"
+            style={{ background: '#13131F', color: '#F2F2F4', border: '1px solid #1C1C2E' }}
+          >
+            {p.cta}
+          </a>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ProductCard({ p, compact = false }: { p: typeof PRODUCTS[number]; compact?: boolean }) {
+  const visibleFeatures = compact ? p.features.slice(0, 3) : p.features
+
+  return (
+    <div
+      className={`relative rounded-2xl flex flex-col ${compact ? 'p-5' : 'p-7'}`}
+      style={{
+        background: p.featured ? 'linear-gradient(145deg, #0E1A2A 0%, #0E0E16 100%)' : '#0E0E16',
+        border: p.featured ? '1px solid rgba(0,229,255,0.35)' : '1px solid #1C1C2E',
+      }}
+    >
+      {p.featured && (
+        <div className="text-center mb-3">
+          <span className="bg-[#00E5FF] text-[#07070C] text-xs font-bold px-3 py-1 rounded-full font-syne">
+            Most popular
+          </span>
+        </div>
+      )}
+
+      <div className={compact ? 'mb-4' : 'mb-6'}>
+        <p className="font-syne font-bold text-sm uppercase tracking-widest text-[#6B6B80] mb-2">{p.name}</p>
+        <div className="flex items-baseline gap-1.5">
+          <span className={`font-syne font-bold text-[#F2F2F4] ${compact ? 'text-3xl' : 'text-4xl'}`}>{p.price}</span>
+          <span className="text-sm text-[#6B6B80]">{p.period}</span>
+        </div>
+      </div>
+
+      <p className={`text-sm text-[#6B6B80] leading-relaxed ${compact ? 'mb-4' : 'mb-6'}`}>{p.desc}</p>
+
+      <ul className={`flex flex-col gap-2.5 flex-1 ${compact ? 'mb-5' : 'mb-8'}`}>
+        {visibleFeatures.map(f => (
+          <li key={f} className="flex items-center gap-2.5 text-sm text-[#F2F2F4]">
+            <span style={{ color: '#00E5FF' }}>✓</span>
+            {f}
+          </li>
+        ))}
+      </ul>
+
+      {p.cardType ? (
+        <button
+          onClick={() => handleBuy(p.cardType!)}
+          className="text-center py-3 rounded-xl font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-95 cursor-pointer"
+          style={
+            p.featured
+              ? { background: '#00E5FF', color: '#07070C' }
+              : { background: '#13131F', color: '#F2F2F4', border: '1px solid #1C1C2E' }
+          }
+        >
+          {p.cta}
+        </button>
+      ) : (
+        <a
+          href="mailto:synqotap@gmail.com"
+          className="text-center py-3 rounded-xl font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-95"
+          style={{ background: '#13131F', color: '#F2F2F4', border: '1px solid #1C1C2E' }}
+        >
+          {p.cta}
+        </a>
+      )}
+    </div>
   )
 }
 
@@ -503,63 +689,6 @@ const DEMO_FEATURES = [
   'Works on any iPhone or Android',
 ]
 
-function DemoProfileCard() {
-  return (
-    <div
-      className="rounded-2xl overflow-hidden w-full max-w-xs mx-auto shadow-2xl"
-      style={{ background: '#0E0E16', border: '1px solid #1C1C2E' }}
-    >
-      {/* Cover */}
-      <div
-        className="h-28 relative"
-        style={{ background: 'linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%)' }}
-      >
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, #0E0E16 100%)' }} />
-      </div>
-
-      {/* Avatar */}
-      <div className="px-5 -mt-10 pb-5">
-        <div
-          className="w-16 h-16 rounded-full flex items-center justify-center font-syne font-bold text-xl border-2 mb-3"
-          style={{ background: 'linear-gradient(135deg, #0f3460, #1a1a2e)', borderColor: '#1C1C2E', color: '#F2F2F4' }}
-        >
-          HV
-        </div>
-
-        {/* Save contact */}
-        <button
-          className="w-full py-2.5 rounded-xl text-sm font-semibold mb-4 transition-colors"
-          style={{ background: 'rgba(0,229,255,0.1)', color: '#00E5FF', border: '1px solid rgba(0,229,255,0.2)' }}
-        >
-          Save contact
-        </button>
-
-        <h3 className="font-syne font-bold text-lg text-[#F2F2F4]">Humberto Villiva</h3>
-        <p className="text-sm text-[#6B6B80] mb-1">Tax Advisor</p>
-        <p className="text-xs font-semibold mb-5" style={{ color: '#00E5FF' }}>SynqoTap</p>
-
-        {/* Buttons */}
-        <div className="flex flex-col gap-2.5">
-          {[
-            { label: 'Call', bg: 'rgba(34,197,94,0.15)', color: '#22C55E' },
-            { label: 'WhatsApp', bg: 'rgba(37,211,102,0.15)', color: '#25D366' },
-            { label: 'Email', bg: 'rgba(99,179,237,0.15)', color: '#63B3ED' },
-            { label: 'LinkedIn', bg: 'rgba(10,102,194,0.15)', color: '#0A66C2' },
-          ].map(btn => (
-            <div
-              key={btn.label}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium"
-              style={{ background: btn.bg, color: btn.color, border: `1px solid ${btn.color}33` }}
-            >
-              <span className="w-5 h-5 rounded-lg flex items-center justify-center shrink-0" style={{ background: btn.bg }}>›</span>
-              {btn.label}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function Demo() {
   return (
@@ -581,18 +710,60 @@ function Demo() {
                 </li>
               ))}
             </ul>
+          </div>
+
+          {/* Profile card mockup */}
+          <div className="flex flex-col gap-4">
+            <div className="max-w-xs mx-auto w-full rounded-3xl overflow-hidden border border-[#22223A]" style={{background:'#07070C'}}>
+              {/* Cover */}
+              <div className="h-20 relative overflow-hidden">
+                <div className="absolute inset-0" style={{background:'linear-gradient(180deg,#1C1C2E 0%,#13131F 100%)'}}/>
+                <div className="absolute inset-0" style={{background:'radial-gradient(ellipse at 50% 0%,rgba(0,229,255,0.06) 0%,transparent 70%)'}}/>
+              </div>
+              {/* Avatar + Save contact */}
+              <div className="px-5 flex items-end justify-between" style={{marginTop:'-36px',position:'relative',zIndex:1}}>
+                <div className="w-18 h-18 rounded-full flex items-center justify-center font-black text-xl text-white font-syne shrink-0" style={{background:'linear-gradient(135deg,#00E5FF,#7B61FF)',border:'3px solid #07070C',position:'relative',zIndex:2}}>
+                  HV
+                </div>
+                <div className="mb-1 inline-flex items-center gap-1.5 bg-[#00E5FF] text-[#07070C] text-xs font-bold px-3 py-2 rounded-full font-syne">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  Save contact
+                </div>
+              </div>
+              {/* Info */}
+              <div className="px-5 pt-3 pb-3">
+                <div className="font-black text-lg mb-0.5 font-syne">Humberto Villiva</div>
+                <div className="text-sm font-medium mb-0.5" style={{color:'#00E5FF'}}>Tax Advisor</div>
+                <div className="text-sm text-[#6B6B80]">SynqoTap</div>
+              </div>
+              {/* Divider */}
+              <div className="border-t border-[#1C1C2E] mx-5"/>
+              {/* Buttons */}
+              <div className="px-5 py-4 space-y-2">
+                {[
+                  {label:'Call', bg:'rgba(34,197,94,0.15)', color:'#22C55E', icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.12 1.18 2 2 0 012.1 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/></svg>},
+                  {label:'WhatsApp', bg:'rgba(37,211,102,0.15)', color:'#25D366', icon:<svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.553 4.103 1.523 5.824L.057 23.882a.5.5 0 00.613.613l6.058-1.466A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.028-1.382l-.36-.214-3.732.903.918-3.636-.234-.374A9.818 9.818 0 1112 21.818z"/></svg>},
+                  {label:'Email', bg:'rgba(99,179,237,0.15)', color:'#63B3ED', icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>},
+                  {label:'LinkedIn', bg:'rgba(10,102,194,0.15)', color:'#0A66C2', icon:<svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>},
+                ].map((btn,i) => (
+                  <div key={i} className="flex items-center gap-3 bg-[#0E0E16] border border-[#1C1C2E] rounded-2xl px-3 py-2.5">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:btn.bg,color:btn.color}}>{btn.icon}</div>
+                    <span className="text-sm font-medium flex-1">{btn.label}</span>
+                    <span className="text-[#6B6B80] text-lg">›</span>
+                  </div>
+                ))}
+              </div>
+              <div className="text-center pb-4 text-xs text-[#6B6B80]">Created with <span style={{color:'#00E5FF'}}>SynqoTap</span></div>
+            </div>
 
             <Link
               href="/c/synqo-tap-ub9u"
-              className="inline-flex items-center gap-2 text-sm font-semibold transition-colors"
+              className="inline-flex items-center gap-2 text-sm font-semibold transition-colors self-center"
               style={{ color: '#00E5FF' }}
             >
               View full demo →
             </Link>
           </div>
-
-          {/* Profile card */}
-          <DemoProfileCard />
         </div>
       </div>
     </section>
@@ -690,13 +861,13 @@ function CTASection() {
           Stop handing out<br />forgotten paper cards
         </h2>
         <p className="text-[#6B6B80] mb-10 text-lg relative">One tap. Every detail. Always up to date.</p>
-        <Link
-          href="/checkout"
+        <a
+          href="/#products"
           className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-base transition-all duration-200 hover:opacity-90 active:scale-95 relative"
           style={{ background: '#00E5FF', color: '#07070C' }}
         >
-          Start now — from $39 →
-        </Link>
+          Start Now
+        </a>
       </div>
     </section>
   )

@@ -6,7 +6,7 @@ import {
   SiX, SiSnapchat, SiYoutube, SiCalendly, SiZelle, SiCashapp, SiVenmo, SiPaypal,
 } from 'react-icons/si'
 import { FaLinkedinIn } from 'react-icons/fa6'
-import { LuPhone, LuMail, LuGlobe, LuMapPin, LuLink } from 'react-icons/lu'
+import { LuPhone, LuMail, LuGlobe, LuMapPin, LuLink, LuMessageSquare } from 'react-icons/lu'
 import { ProfileButton, ButtonGroup, BUTTON_CONFIG, ButtonType, ProfileTemplate } from '@/types/app'
 
 type IconComp = React.ComponentType<{ size?: number }>
@@ -14,6 +14,7 @@ type IconComp = React.ComponentType<{ size?: number }>
 const ICON_COMPONENTS: Record<ButtonType, IconComp> = {
   phone:     LuPhone,
   whatsapp:  SiWhatsapp,
+  sms:       LuMessageSquare,
   email:     LuMail,
   telegram:  SiTelegram,
   instagram: SiInstagram,
@@ -209,43 +210,42 @@ export default function ProfileButtons({
       )
     }
 
-    const inner = isBold ? (
-      <a
-        href={config.href(btn.value)}
-        target={isExternal ? '_blank' : undefined}
-        rel="noopener noreferrer"
+    const href = config.href(btn.value, btn.message ?? undefined)
+    // In edit mode use div (no navigation); in view mode use <a>
+    const Tag = isEditMode ? 'div' : 'a'
+    const linkProps = isEditMode ? {} : { href, target: isExternal ? '_blank' : undefined, rel: 'noopener noreferrer' }
+
+    if (isBold) return (
+      <Tag
+        {...(linkProps as any)}
         className="animate-fadeUp flex items-center gap-3.5 rounded-xl px-4 py-4 transition-all duration-200 active:scale-[0.98] w-full"
         style={{ background: '#13131F', borderTop: '1px solid #1C1C2E', borderRight: '1px solid #1C1C2E', borderBottom: '1px solid #1C1C2E', borderLeft: `4px solid ${accent}`, animationDelay: delay }}
       >
         <div className="w-9 h-9 flex items-center justify-center shrink-0" style={{ color: accent }}>{icon}</div>
         <span className="text-xs font-bold uppercase tracking-widest text-[#F2F2F4] flex-1">{btn.label || config.label}</span>
-      </a>
-    ) : isSoft ? (
-      <a
-        href={config.href(btn.value)}
-        target={isExternal ? '_blank' : undefined}
-        rel="noopener noreferrer"
+      </Tag>
+    )
+    if (isSoft) return (
+      <Tag
+        {...(linkProps as any)}
         className="animate-fadeUp flex items-center justify-center gap-3 rounded-full px-5 py-3.5 transition-all duration-200 active:scale-[0.98] w-full"
         style={{ background: `${accent}1F`, border: `1px solid ${accent}4D`, animationDelay: delay }}
       >
         <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: config.bgColor, color: config.iconColor }}>{icon}</div>
         <span className="text-sm font-medium text-[#F2F2F4]">{btn.label || config.label}</span>
-      </a>
-    ) : (
-      <a
-        href={config.href(btn.value)}
-        target={isExternal ? '_blank' : undefined}
-        rel="noopener noreferrer"
+      </Tag>
+    )
+    return (
+      <Tag
+        {...(linkProps as any)}
         className="animate-fadeUp flex items-center gap-3.5 rounded-2xl px-4 py-3.5 transition-all duration-200 hover:translate-x-1 active:scale-[0.98] group w-full"
         style={{ background: isDragging ? '#13131F' : '#0E0E16', border: '1px solid #1C1C2E', animationDelay: delay }}
       >
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: config.bgColor, color: config.iconColor }}>{icon}</div>
         <span className="flex-1 text-sm font-medium text-[#F2F2F4]">{btn.label || config.label}</span>
-        <span className="text-lg transition-all duration-200 group-hover:translate-x-1 text-[#6B6B80]">›</span>
-      </a>
+        {!isEditMode && <span className="text-lg transition-all duration-200 group-hover:translate-x-1 text-[#6B6B80]">›</span>}
+      </Tag>
     )
-
-    return inner
   }
 
   // ── Icon card styles per template ───────────────────────────
@@ -286,7 +286,7 @@ export default function ProfileButtons({
     const delay = `${0.05 + (buttonAnimIdx.get(btn.id) ?? 0) * 0.04}s`
     return (
       <a
-        href={config.href(btn.value)}
+        href={config.href(btn.value, btn.message ?? undefined)}
         target={isExternal ? '_blank' : undefined}
         rel="noopener noreferrer"
         className="animate-fadeUp flex items-center justify-center transition-all duration-200 active:scale-[0.93]"
@@ -407,6 +407,7 @@ export default function ProfileButtons({
                                       <button
                                         onClick={e => { e.preventDefault(); e.stopPropagation(); onDelete?.(btn.id) }}
                                         onPointerDown={e => e.stopPropagation()}
+                                        onMouseDown={e => e.stopPropagation()}
                                         className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#E24B4A] rounded-full flex items-center justify-center z-20 text-white font-black select-none leading-none"
                                         style={{ fontSize: 14 }}
                                       >×</button>
@@ -442,29 +443,17 @@ export default function ProfileButtons({
                                     <div
                                       ref={drag.innerRef}
                                       {...drag.draggableProps}
-                                      className="relative"
+                                      {...drag.dragHandleProps}
+                                      className="relative cursor-grab active:cursor-grabbing"
                                       style={{ ...drag.draggableProps.style, opacity: snap.isDragging ? 0.7 : 1 }}
+                                      onClick={() => !snap.isDragging && onEditButton?.(btn)}
                                     >
-                                      {/* drag handle */}
-                                      <div
-                                        {...drag.dragHandleProps}
-                                        className="absolute left-0 top-0 bottom-0 w-10 z-10 flex items-center justify-center cursor-grab active:cursor-grabbing"
-                                        onClick={e => { e.preventDefault(); e.stopPropagation() }}
-                                      >
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[#3A3A50]">
-                                          <line x1="8" y1="6" x2="16" y2="6" />
-                                          <line x1="8" y1="12" x2="16" y2="12" />
-                                          <line x1="8" y1="18" x2="16" y2="18" />
-                                        </svg>
-                                      </div>
-                                      {/* tap to edit */}
-                                      <button className="w-full text-left" onClick={() => onEditButton?.(btn)}>
-                                        {renderFullWidth(btn, snap.isDragging)}
-                                      </button>
+                                      {renderFullWidth(btn, snap.isDragging)}
                                       {/* × delete */}
                                       <button
                                         onClick={e => { e.preventDefault(); e.stopPropagation(); onDelete?.(btn.id) }}
                                         onPointerDown={e => e.stopPropagation()}
+                                        onMouseDown={e => e.stopPropagation()}
                                         className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#E24B4A] rounded-full flex items-center justify-center z-20 text-white font-black select-none leading-none"
                                         style={{ fontSize: 14 }}
                                       >×</button>

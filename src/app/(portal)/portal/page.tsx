@@ -14,7 +14,7 @@ import { Modal } from '@/components/ui'
 import ProfileButtons, { ICONS } from '@/components/profile/ProfileButtons'
 import SaveContactButton from '@/components/profile/SaveContactButton'
 import {
-  BUTTON_CONFIG, ADMIN_EMAIL, ACCENT_COLORS,
+  BUTTON_CONFIG, ADMIN_EMAIL, ACCENT_COLORS, MESSAGING_TYPES,
   type ProfileTemplate, type ProfileButton, type ButtonType,
 } from '@/types/app'
 import { updateProfile } from '@/services/profiles'
@@ -26,7 +26,7 @@ const ADD_PANEL_CATEGORIES: Array<{
 }> = [
   {
     label: 'Contact',
-    types: ['phone', 'whatsapp', 'email', 'telegram'],
+    types: ['phone', 'whatsapp', 'sms', 'email', 'telegram'],
   },
   {
     label: 'Social',
@@ -61,6 +61,7 @@ export default function PortalPage() {
   const [editingButton, setEditingButton] = useState<ProfileButton | null>(null)
   const [editValueInput, setEditValueInput] = useState('')
   const [editLabelInput, setEditLabelInput] = useState('')
+  const [editMessageInput, setEditMessageInput] = useState('')
   const [editIsActive, setEditIsActive] = useState(true)
   const [editIsNewEmpty, setEditIsNewEmpty] = useState(false)
 
@@ -122,6 +123,7 @@ export default function PortalPage() {
     setEditingButton(btn)
     setEditValueInput(btn.value || '')
     setEditLabelInput(btn.label || BUTTON_CONFIG[btn.type as ButtonType]?.label || '')
+    setEditMessageInput(btn.message || '')
     setEditIsActive(btn.is_active)
     setEditIsNewEmpty(!btn.value)
   }
@@ -130,9 +132,11 @@ export default function PortalPage() {
     if (!editingButton) return
     const trimmed = editValueInput.trim()
     if (trimmed) {
+      const isMessaging = MESSAGING_TYPES.has(editingButton.type as ButtonType)
       await update(editingButton.id, {
         value: trimmed,
         label: editLabelInput.trim() || BUTTON_CONFIG[editingButton.type as ButtonType]?.label || '',
+        message: isMessaging ? (editMessageInput.trim() || null) : null,
         is_active: editIsActive,
       })
     } else {
@@ -814,6 +818,23 @@ export default function PortalPage() {
               autoFocus
             />
           </div>
+
+          {/* Default message (messaging types only) */}
+          {editingButton && MESSAGING_TYPES.has(editingButton.type as ButtonType) && (
+            <div>
+              <p className="text-xs text-[#6B6B80] mb-1.5">
+                Default message <span className="text-[#3A3A50]">(optional)</span>
+              </p>
+              <textarea
+                className="w-full bg-[#13131F] border border-[#22223A] rounded-xl px-4 py-3 text-sm text-[#F2F2F4] placeholder:text-[#3A3A50] focus:outline-none focus:border-[#00E5FF] transition-colors resize-none"
+                value={editMessageInput}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditMessageInput(e.target.value)}
+                placeholder="Hi! I'd love to connect..."
+                rows={3}
+              />
+              <p className="text-xs text-[#3A3A50] mt-1">Pre-fills the message when someone taps this button</p>
+            </div>
+          )}
 
           {/* Custom label */}
           <div>

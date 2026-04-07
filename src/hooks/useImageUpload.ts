@@ -15,17 +15,33 @@ export function useImageUpload(profileId: string | null) {
     if (type === 'avatar') setUploadingAvatar(true)
     else setUploadingCover(true)
 
-    const ext = file.name.split('.').pop()
+    // Derive extension from MIME type so files without a proper name still work
+    const mimeToExt: Record<string, string> = {
+      'image/jpeg':  'jpg',
+      'image/jpg':   'jpg',
+      'image/png':   'png',
+      'image/gif':   'gif',
+      'image/webp':  'webp',
+      'image/avif':  'avif',
+      'image/heic':  'heic',
+      'image/heif':  'heif',
+      'image/bmp':   'bmp',
+      'image/tiff':  'tiff',
+    }
+    const ext = mimeToExt[file.type] ?? (file.name.split('.').pop() ?? 'jpg')
     const path = `${profileId}/${type}-${Date.now()}.${ext}`
 
     const { error } = await supabase.storage
       .from('avatars')
-      .upload(path, file, { upsert: true })
+      .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' })
 
     if (type === 'avatar') setUploadingAvatar(false)
     else setUploadingCover(false)
 
-    if (error) return null
+    if (error) {
+      console.error('Image upload error:', error.message)
+      return null
+    }
 
     const { data: urlData } = supabase.storage
       .from('avatars')

@@ -6,7 +6,6 @@ import { sendPurchaseConfirmation } from '@/lib/resend/emails'
 import {
   generateSlug,
   generateTempPassword,
-  getCardUnitPrice,
   generateInvoiceNumber,
 } from '@/lib/stripe/helpers'
 
@@ -40,13 +39,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true })
   }
 
-  const session = event.data.object as Stripe.Checkout.Session
-  const cardType = session.metadata?.card_type || 'pvc'
-  const quantity = parseInt(session.metadata?.quantity || '1')
-  const customerEmail = session.customer_details?.email!
-  const customerName = session.customer_details?.name || 'Customer'
+  const rawSession = event.data.object as Stripe.Checkout.Session
 
   try {
+    // Retrieve the full session from Stripe to guarantee shipping_details
+    // and amount fields are populated (webhook payloads can be incomplete)
+    const session = await stripe.checkout.sessions.retrieve(rawSession.id)
+
+    const cardType = session.metadata?.card_type || 'pvc'
+    const quantity = parseInt(session.metadata?.quantity || '1')
+    const customerEmail = session.customer_details?.email!
+    const customerName = session.customer_details?.name || 'Customer'
+
+    // Use the actual amount charged by Stripe (converts from cents)
+    const totalCharged = (session.amount_total ?? 0) / 100
+    const unitPrice = totalCharged / quantity
+
     const tempPassword = generateTempPassword()
 
     // 1. Create or update auth user
@@ -62,7 +70,6 @@ export async function POST(req: NextRequest) {
     const profileId = await createProfile(customerId, slug, customerName)
 
     // 4. Create order
-    const unitPrice = getCardUnitPrice(cardType)
     const orderId = await createOrder(
       customerId, profileId, cardType, quantity,
       unitPrice, session
@@ -75,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     // 6. Create invoice
     if (orderId) {
-      await createInvoice(orderId, customerId, unitPrice * quantity)
+      await createInvoice(orderId, customerId, totalCharged)
     }
 
     // 7. Send confirmation email

@@ -109,6 +109,7 @@ export type Database = {
           type: string
           label: string | null
           value: string
+          message: string | null
           position: number
           is_active: boolean
           created_at: string
@@ -119,6 +120,7 @@ export type Database = {
           type: string
           label?: string | null
           value: string
+          message?: string | null
           position?: number
           is_active?: boolean
           created_at?: string
@@ -127,6 +129,7 @@ export type Database = {
           type?: string
           label?: string | null
           value?: string
+          message?: string | null
           position?: number
           is_active?: boolean
         }

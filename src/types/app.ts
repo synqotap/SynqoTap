@@ -22,12 +22,15 @@ export type OrderStatus =
   | 'cancelled' | 'refunded'
 
 export type ButtonType =
-  | 'phone' | 'whatsapp' | 'email'
+  | 'phone' | 'whatsapp' | 'sms' | 'email'
   | 'instagram' | 'linkedin' | 'facebook'
   | 'tiktok' | 'twitter' | 'snapchat' | 'youtube'
   | 'website' | 'calendly' | 'telegram'
   | 'zelle' | 'cashapp' | 'venmo' | 'paypal'
   | 'maps' | 'custom'
+
+// Types that support a default pre-filled message
+export const MESSAGING_TYPES = new Set<ButtonType>(['whatsapp', 'sms', 'email'])
 
 export type ProfileTemplate = 'minimal' | 'bold' | 'soft' | 'card'
 export type CustomerRole = 'customer' | 'business_admin' | 'reseller'
@@ -66,13 +69,14 @@ export const BUTTON_CONFIG: Record<ButtonType, {
   label: string
   placeholder: string
   group: 'contact' | 'social' | 'web' | 'payment' | 'other'
-  href: (value: string) => string
+  href: (value: string, message?: string | null) => string
   bgColor: string
   iconColor: string
 }> = {
   phone:     { label: 'Call',          placeholder: '+1 555 0000',           group: 'contact', href: v => `tel:${v}`,                                    bgColor: 'rgba(34,197,94,0.15)',   iconColor: '#22C55E' },
-  whatsapp:  { label: 'WhatsApp',      placeholder: '+1 555 0000',           group: 'contact', href: v => `https://wa.me/${v.replace(/\D/g,'')}`,        bgColor: 'rgba(37,211,102,0.15)',  iconColor: '#25D366' },
-  email:     { label: 'Email',         placeholder: 'your@email.com',        group: 'contact', href: v => `mailto:${v}`,                                 bgColor: 'rgba(99,179,237,0.15)',  iconColor: '#63B3ED' },
+  whatsapp:  { label: 'WhatsApp',      placeholder: '+1 555 0000',           group: 'contact', href: (v, msg) => { const num = v.replace(/\D/g,''); return msg ? `https://wa.me/${num}?text=${encodeURIComponent(msg)}` : `https://wa.me/${num}` }, bgColor: 'rgba(37,211,102,0.15)', iconColor: '#25D366' },
+  sms:       { label: 'SMS',           placeholder: '+1 555 0000',           group: 'contact', href: (v, msg) => { const num = v.replace(/\D/g,''); return msg ? `sms:+${num}?body=${encodeURIComponent(msg)}` : `sms:+${num}` }, bgColor: 'rgba(34,197,94,0.15)', iconColor: '#22C55E' },
+  email:     { label: 'Email',         placeholder: 'your@email.com',        group: 'contact', href: (v, msg) => msg ? `mailto:${v}?body=${encodeURIComponent(msg)}` : `mailto:${v}`, bgColor: 'rgba(99,179,237,0.15)', iconColor: '#63B3ED' },
   telegram:  { label: 'Telegram',      placeholder: '@username',             group: 'contact', href: v => `https://t.me/${v.replace('@','')}`,           bgColor: 'rgba(0,136,204,0.15)',   iconColor: '#0088CC' },
   instagram: { label: 'Instagram',     placeholder: '@username',             group: 'social',  href: v => `https://instagram.com/${v.replace('@','')}`,  bgColor: 'rgba(225,48,108,0.15)',  iconColor: '#E1306C' },
   linkedin:  { label: 'LinkedIn',      placeholder: 'username',              group: 'social',  href: v => `https://linkedin.com/in/${v}`,                bgColor: 'rgba(10,102,194,0.15)',  iconColor: '#0A66C2' },

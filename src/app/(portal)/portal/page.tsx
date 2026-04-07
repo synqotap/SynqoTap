@@ -534,9 +534,11 @@ export default function PortalPage() {
           saveContactSlot={<SaveContactButton profile={profile} buttons={buttons} accent={accent} compact />}
         />
 
-        <div className="max-w-lg mx-auto px-5 pt-11">
+        {renderCover('h-44')}
+
+        <div className="max-w-lg mx-auto px-5">
           {/* Avatar — centered circle with accent ring */}
-          <div className="flex flex-col items-center mb-6 pt-10">
+          <div className="flex flex-col items-center mb-6" style={{ marginTop: -48, position: 'relative', zIndex: 10 }}>
             {wrapAvatarEdit(renderAvatarCircle('w-28 h-28', '#07070C', true))}
 
             <div className="mt-4 text-center w-full">

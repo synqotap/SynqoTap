@@ -176,9 +176,19 @@ export default async function PublicProfilePage({ params }: Props) {
         className="min-h-screen text-[#F2F2F4] font-dm-sans pb-16"
         style={{ background: `radial-gradient(ellipse 100% 60% at 50% 0%, ${accent}14 0%, #07070C 65%)` }}
       >
-        <div className="max-w-lg mx-auto px-5 pt-14">
+        {/* Cover */}
+        <div className="w-full h-44 relative overflow-hidden">
+          {profile.cover_url ? (
+            <img src={profile.cover_url} alt="Cover" className="w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse 120% 80% at 50% 0%, ${accent}20 0%, transparent 70%)` }} />
+          )}
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, #07070C)' }} />
+        </div>
+
+        <div className="max-w-lg mx-auto px-5">
           {/* Avatar — centered, circle with solid accent ring */}
-          <div className="flex flex-col items-center mb-6 animate-fadeUp">
+          <div className="flex flex-col items-center mb-6 animate-fadeUp" style={{ marginTop: -48, position: 'relative', zIndex: 10 }}>
             <div
               className="rounded-full mb-4"
               style={{ padding: '3px', background: accent }}

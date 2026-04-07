@@ -34,7 +34,8 @@ export default function SettingsPage() {
     if (error) { setError('Could not update password. Please try again.'); setLoading(false); return }
     setSuccess(true)
     setLoading(false)
-    setTimeout(() => { window.location.href = '/portal' }, 2000)
+    const dest = isFirstLogin ? '/portal?onboarding=true' : '/portal'
+    setTimeout(() => { window.location.href = dest }, 2000)
   }
 
   const strength = password.length === 0 ? 0 : password.length < 6 ? 1 : password.length < 10 ? 2 : 3

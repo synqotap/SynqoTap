@@ -85,7 +85,13 @@ export default function PortalPage() {
   // Sync inline values and check onboarding when profile loads
   useEffect(() => {
     if (!profile) return
-    setShowOnboarding(!profile.display_name)
+    const params = new URLSearchParams(window.location.search)
+    const isFirstEntry = params.get('onboarding') === 'true'
+    if (isFirstEntry) {
+      // Remove param so a page refresh doesn't re-trigger onboarding
+      window.history.replaceState({}, '', '/portal')
+    }
+    setShowOnboarding(!profile.display_name || isFirstEntry)
     setInlineValues({
       display_name: profile.display_name || '',
       job_title: profile.job_title || '',
@@ -97,11 +103,14 @@ export default function PortalPage() {
 
   // ── Handlers ─────────────────────────────────────────────────
   async function handleImageUpload(file: File, type: 'avatar' | 'cover') {
+    if (!profile) return
+    const field = type === 'avatar' ? 'avatar_url' : 'cover_url'
+    const profileId = profile.id
     const url = await upload(file, type)
-    if (url && profile) {
-      const field = type === 'avatar' ? 'avatar_url' : 'cover_url'
-      await updateProfile(supabase, profile.id, { [field]: url })
-      setProfile({ ...profile, [field]: url })
+    if (url) {
+      // Functional update avoids stale-closure overwriting concurrent state changes
+      setProfile(prev => prev ? { ...prev, [field]: url } : prev)
+      await updateProfile(supabase, profileId, { [field]: url })
     }
   }
 

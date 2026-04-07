@@ -2,6 +2,7 @@ import type { Database } from './database'
 
 // ── Database row types ──────────────────────────────────────
 export type Customer = Database['public']['Tables']['customers']['Row']
+export type Price = Database['public']['Tables']['prices']['Row']
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type ProfileButton = Database['public']['Tables']['profile_buttons']['Row']
 export type ButtonGroup = Database['public']['Tables']['button_groups']['Row']

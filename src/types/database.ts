@@ -16,6 +16,7 @@ export type Database = {
           created_at: string
           updated_at: string
           force_password_change: boolean | null
+          is_active: boolean
         }
         Insert: {
           id?: string
@@ -27,6 +28,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
           force_password_change?: boolean | null
+          is_active?: boolean
         }
         Update: {
           id?: string
@@ -37,6 +39,7 @@ export type Database = {
           plan?: string
           updated_at?: string
           force_password_change?: boolean | null
+          is_active?: boolean
         }
         Relationships: []
       }
@@ -150,6 +153,7 @@ export type Database = {
           stripe_session_id: string | null
           status: string
           shipping_address: Record<string, unknown> | null
+          notes: string | null
           created_at: string
           updated_at: string
         }
@@ -165,12 +169,14 @@ export type Database = {
           stripe_session_id?: string | null
           status?: string
           shipping_address?: Record<string, unknown> | null
+          notes?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           status?: string
           shipping_address?: Record<string, unknown> | null
+          notes?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -340,6 +346,9 @@ export type Database = {
           uses_count: number
           expires_at: string | null
           is_active: boolean
+          show_on_home: boolean
+          description: string | null
+          stripe_coupon_id: string | null
           created_at: string
           updated_at: string
         }
@@ -352,6 +361,9 @@ export type Database = {
           uses_count?: number
           expires_at?: string | null
           is_active?: boolean
+          show_on_home?: boolean
+          description?: string | null
+          stripe_coupon_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -363,6 +375,39 @@ export type Database = {
           uses_count?: number
           expires_at?: string | null
           is_active?: boolean
+          show_on_home?: boolean
+          description?: string | null
+          stripe_coupon_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prices: {
+        Row: {
+          id: string
+          card_type: string
+          price: number
+          original_price: number | null
+          is_on_sale: boolean
+          sale_label: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          card_type: string
+          price: number
+          original_price?: number | null
+          is_on_sale?: boolean
+          sale_label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          card_type?: string
+          price?: number
+          original_price?: number | null
+          is_on_sale?: boolean
+          sale_label?: string | null
           updated_at?: string
         }
         Relationships: []

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 // ── Stripe checkout ──────────────────────────────────────────────────────────
 
@@ -13,6 +14,20 @@ async function handleBuy(cardType: 'pvc' | 'metal') {
   })
   const data = await res.json()
   if (data.url) window.location.href = data.url
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+type DynamicPrices = {
+  prices: { pvc: number | null; metal: number | null }
+}
+
+type ActiveDiscount = {
+  code: string
+  description: string | null
+  stripe_coupon_id: string | null
+  value: number
+  type: string
 }
 
 // ── Nav ──────────────────────────────────────────────────────────────────────
@@ -403,6 +418,67 @@ function HowItWorks() {
   )
 }
 
+// ── Discount Popup ────────────────────────────────────────────────────────────
+
+function DiscountPopup({ discount, onClose }: { discount: ActiveDiscount; onClose: () => void }) {
+  const [copied, setCopied] = useState(false)
+  const isAutomatic = !discount.code
+
+  function copyCode() {
+    navigator.clipboard.writeText(discount.code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
+    >
+      <div className="relative bg-[#0E0E16] border border-[#00E5FF]/30 rounded-2xl p-8 max-w-sm w-full mx-auto">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-[#6B6B80] hover:text-[#F2F2F4] text-2xl leading-none"
+          aria-label="Close"
+        >
+          ×
+        </button>
+        <div className="text-5xl text-center mb-4">🎉</div>
+        <h3 className="font-syne font-black text-2xl text-[#F2F2F4] text-center mb-3">Special offer</h3>
+        {discount.description && (
+          <p className="text-[#6B6B80] text-sm text-center mb-6">{discount.description}</p>
+        )}
+        {!isAutomatic && (
+          <>
+            <div className="bg-[#07070C] border border-[#00E5FF]/30 rounded-xl px-4 py-3 font-mono text-xl text-[#00E5FF] font-bold text-center mb-3">
+              {discount.code}
+            </div>
+            <button
+              onClick={copyCode}
+              className="w-full py-2.5 rounded-xl text-sm font-semibold mb-4 transition-colors"
+              style={{
+                background: copied ? 'rgba(0,229,255,0.15)' : 'rgba(0,229,255,0.08)',
+                color: '#00E5FF',
+                border: '1px solid rgba(0,229,255,0.2)',
+              }}
+            >
+              {copied ? 'Copied!' : 'Copy code'}
+            </button>
+          </>
+        )}
+        <a
+          href="/#products"
+          onClick={onClose}
+          className="block w-full py-3 rounded-xl font-semibold text-sm text-center transition-all duration-200 hover:opacity-90 active:scale-95"
+          style={{ background: '#00E5FF', color: '#07070C' }}
+        >
+          Shop now →
+        </a>
+      </div>
+    </div>
+  )
+}
+
 // ── Products ─────────────────────────────────────────────────────────────────
 
 const PRODUCTS = [
@@ -438,7 +514,7 @@ const PRODUCTS = [
   },
 ]
 
-function Products() {
+function Products({ dp, activeDiscount }: { dp?: DynamicPrices; activeDiscount?: ActiveDiscount | null }) {
   const [activeIndex, setActiveIndex] = useState(1)
   const carouselRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -486,7 +562,7 @@ function Products() {
         {/* Desktop grid */}
         <div className="hidden md:grid md:grid-cols-3 gap-6">
           {PRODUCTS.map(p => (
-            <ProductCard key={p.name} p={p} />
+            <ProductCard key={p.name} p={p} dp={dp} activeDiscount={activeDiscount} />
           ))}
         </div>
 
@@ -512,7 +588,7 @@ function Products() {
                   pointerEvents: activeIndex === i ? 'auto' : 'none',
                 }}
               >
-                <MobileProductCard p={p} />
+                <MobileProductCard p={p} dp={dp} activeDiscount={activeDiscount} />
               </div>
             ))}
             {/* trailing spacer */}
@@ -544,7 +620,18 @@ const MOBILE_CARD_ICONS: Record<string, string> = {
   Business: '🏢',
 }
 
-function MobileProductCard({ p }: { p: typeof PRODUCTS[number] }) {
+function MobileProductCard({ p, dp, activeDiscount }: { p: typeof PRODUCTS[number]; dp?: DynamicPrices; activeDiscount?: ActiveDiscount | null }) {
+  const key = p.cardType as 'pvc' | 'metal' | null
+  const currentPrice = key && dp ? dp.prices[key] : null
+  const isLoading = key !== null && currentPrice == null
+  const isAutoDiscount = !!(activeDiscount && key && currentPrice != null)
+  const autoDiscountedPrice = isAutoDiscount
+    ? activeDiscount!.type === 'percentage'
+      ? Math.round(currentPrice! * (1 - activeDiscount!.value / 100) * 100) / 100
+      : currentPrice! - activeDiscount!.value
+    : null
+
+
   return (
     <div className="relative pt-5">
       {p.featured && (
@@ -571,7 +658,23 @@ function MobileProductCard({ p }: { p: typeof PRODUCTS[number] }) {
 
         {/* Price */}
         <div className="text-center mb-4">
-          <p className="font-syne font-black text-4xl text-[#F2F2F4]">{p.price}</p>
+          {isLoading ? (
+            <div className="h-12 w-24 bg-[#1C1C2E] rounded-lg animate-pulse mx-auto" />
+          ) : key === null ? (
+            <p className="font-syne font-black text-4xl text-[#F2F2F4]">{p.price}</p>
+          ) : autoDiscountedPrice != null ? (
+            <>
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <span className="text-lg text-[#6B6B80] line-through">${currentPrice}</span>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">
+                  {activeDiscount!.description ?? 'Special offer'}
+                </span>
+              </div>
+              <p className="font-syne font-black text-5xl text-[#00E5FF]">${autoDiscountedPrice}</p>
+            </>
+          ) : (
+            <p className="font-syne font-black text-4xl text-[#F2F2F4]">${currentPrice}</p>
+          )}
           <p className="text-xs text-[#6B6B80] mt-0.5">USD · one-time</p>
         </div>
 
@@ -615,8 +718,18 @@ function MobileProductCard({ p }: { p: typeof PRODUCTS[number] }) {
   )
 }
 
-function ProductCard({ p, compact = false }: { p: typeof PRODUCTS[number]; compact?: boolean }) {
+function ProductCard({ p, compact = false, dp, activeDiscount }: { p: typeof PRODUCTS[number]; compact?: boolean; dp?: DynamicPrices; activeDiscount?: ActiveDiscount | null }) {
   const visibleFeatures = compact ? p.features.slice(0, 3) : p.features
+  const key = p.cardType as 'pvc' | 'metal' | null
+  const currentPrice = key && dp ? dp.prices[key] : null
+  const isLoading = key !== null && currentPrice == null
+  const isAutoDiscount = !!(activeDiscount && key && currentPrice != null)
+  const autoDiscountedPrice = isAutoDiscount
+    ? activeDiscount!.type === 'percentage'
+      ? Math.round(currentPrice! * (1 - activeDiscount!.value / 100) * 100) / 100
+      : currentPrice! - activeDiscount!.value
+    : null
+
 
   return (
     <div
@@ -636,10 +749,32 @@ function ProductCard({ p, compact = false }: { p: typeof PRODUCTS[number]; compa
 
       <div className={compact ? 'mb-4' : 'mb-6'}>
         <p className="font-syne font-bold text-sm uppercase tracking-widest text-[#6B6B80] mb-2">{p.name}</p>
-        <div className="flex items-baseline gap-1.5">
-          <span className={`font-syne font-bold text-[#F2F2F4] ${compact ? 'text-3xl' : 'text-4xl'}`}>{p.price}</span>
-          <span className="text-sm text-[#6B6B80]">{p.period}</span>
-        </div>
+        {isLoading ? (
+          <div className="h-12 w-24 bg-[#1C1C2E] rounded-lg animate-pulse" />
+        ) : key === null ? (
+          <div className="flex items-baseline gap-1.5">
+            <span className={`font-syne font-bold text-[#F2F2F4] ${compact ? 'text-3xl' : 'text-4xl'}`}>{p.price}</span>
+            <span className="text-sm text-[#6B6B80]">{p.period}</span>
+          </div>
+        ) : autoDiscountedPrice != null ? (
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg text-[#6B6B80] line-through">${currentPrice}</span>
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">
+                {activeDiscount!.description ?? 'Special offer'}
+              </span>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className={`font-syne font-black text-[#00E5FF] ${compact ? 'text-3xl' : 'text-5xl'}`}>${autoDiscountedPrice}</span>
+              <span className="text-sm text-[#6B6B80]">{p.period}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-baseline gap-1.5">
+            <span className={`font-syne font-bold text-[#F2F2F4] ${compact ? 'text-3xl' : 'text-4xl'}`}>${currentPrice}</span>
+            <span className="text-sm text-[#6B6B80]">{p.period}</span>
+          </div>
+        )}
       </div>
 
       <p className={`text-sm text-[#6B6B80] leading-relaxed ${compact ? 'mb-4' : 'mb-6'}`}>{p.desc}</p>
@@ -952,13 +1087,60 @@ function Footer() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
+  const [dp, setDp] = useState<DynamicPrices>({
+    prices: { pvc: null, metal: null },
+  })
+  const [activeDiscount, setActiveDiscount] = useState<ActiveDiscount | null>(null)
+  const [showPopup, setShowPopup] = useState(false)
+
+  function closePopup() {
+    setShowPopup(false)
+  }
+
+  useEffect(() => {
+    async function fetchPricesAndDiscounts() {
+      const supabase = createClient()
+
+      const { data: pricesData } = await supabase.from('prices').select('*')
+      if (pricesData) {
+        const rows = pricesData as any[]
+        const pvc = rows.find(r => r.card_type === 'pvc')
+        const metal = rows.find(r => r.card_type === 'metal')
+        setDp(prev => ({
+          prices: {
+            pvc: pvc ? pvc.price : prev.prices.pvc,
+            metal: metal ? metal.price : prev.prices.metal,
+          },
+        }))
+      }
+
+      const { data: discountData } = await supabase
+        .from('discounts')
+        .select('code, description, stripe_coupon_id, value, type')
+        .eq('is_active', true)
+        .eq('show_on_home', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (discountData) {
+        setActiveDiscount(discountData)
+        setShowPopup(true)
+      }
+    }
+    fetchPricesAndDiscounts()
+  }, [])
+
   return (
     <>
       <Nav />
+      {showPopup && activeDiscount && (
+        <DiscountPopup discount={activeDiscount} onClose={closePopup} />
+      )}
       <main>
         <Hero />
         <HowItWorks />
-        <Products />
+        <Products dp={dp} activeDiscount={activeDiscount} />
         <Demo />
         <FAQ />
         <CTASection />

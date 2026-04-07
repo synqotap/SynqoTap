@@ -103,14 +103,11 @@ export default function PortalPage() {
 
   // ── Handlers ─────────────────────────────────────────────────
   async function handleImageUpload(file: File, type: 'avatar' | 'cover') {
-    if (!profile) return
-    const field = type === 'avatar' ? 'avatar_url' : 'cover_url'
-    const profileId = profile.id
     const url = await upload(file, type)
-    if (url) {
-      // Functional update avoids stale-closure overwriting concurrent state changes
-      setProfile(prev => prev ? { ...prev, [field]: url } : prev)
-      await updateProfile(supabase, profileId, { [field]: url })
+    if (url && profile) {
+      const field = type === 'avatar' ? 'avatar_url' : 'cover_url'
+      await updateProfile(supabase, profile.id, { [field]: url })
+      setProfile({ ...profile, [field]: url })
     }
   }
 

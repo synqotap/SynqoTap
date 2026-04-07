@@ -18,10 +18,8 @@ export function useImageUpload(profileId: string | null) {
     const ext = file.name.split('.').pop()
     const path = `${profileId}/${type}-${Date.now()}.${ext}`
 
-    const bucket = type === 'avatar' ? 'avatars' : 'covers'
-
     const { error } = await supabase.storage
-      .from(bucket)
+      .from('avatars')
       .upload(path, file, { upsert: true })
 
     if (type === 'avatar') setUploadingAvatar(false)
@@ -30,7 +28,7 @@ export function useImageUpload(profileId: string | null) {
     if (error) return null
 
     const { data: urlData } = supabase.storage
-      .from(bucket)
+      .from('avatars')
       .getPublicUrl(path)
 
     return urlData.publicUrl

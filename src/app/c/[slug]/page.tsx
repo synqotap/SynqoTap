@@ -43,7 +43,7 @@ export default async function PublicProfilePage({ params }: Props) {
 
   const { data: profile } = await supabaseAdmin
     .from('profiles')
-    .select('*, profile_buttons(*)')
+    .select('*')
     .eq('slug', slug)
     .eq('is_published', true)
     .single()
@@ -77,9 +77,15 @@ export default async function PublicProfilePage({ params }: Props) {
     .substring(0, 2)
     .toUpperCase()
 
-  const buttons = ((profile.profile_buttons || []) as unknown as any[])
-    .filter((b: any) => b.is_active)
-    .sort((a: any, b: any) => a.position - b.position)
+  // Fetch buttons separately — nested joins don't respect order reliably
+  const { data: buttonData } = await supabaseAdmin
+    .from('profile_buttons')
+    .select('*')
+    .eq('profile_id', profile.id)
+    .eq('is_active', true)
+    .order('position', { ascending: true })
+
+  const buttons = (buttonData || []) as ProfileButton[]
 
   const { data: groupData } = await supabaseAdmin
     .from('button_groups')

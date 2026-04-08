@@ -62,8 +62,26 @@ export default async function PublicProfilePage({ params }: Props) {
     )
   }
 
+  // Fetch buttons + groups in parallel
+  const [{ data: buttonData }, { data: groupData }] = await Promise.all([
+    supabaseAdmin
+      .from('profile_buttons')
+      .select('*')
+      .eq('profile_id', profile.id)
+      .eq('is_active', true)
+      .order('position', { ascending: true }),
+    supabaseAdmin
+      .from('button_groups')
+      .select('*')
+      .eq('profile_id', profile.id)
+      .order('position'),
+  ])
+
   // Increment view count (fire and forget)
   incrementProfileView(supabaseAdmin, slug).catch(console.error)
+
+  const buttons = (buttonData || []) as ProfileButton[]
+  const groups = (groupData || []) as ButtonGroup[]
 
   const accent = profile.accent_color || '#00E5FF'
   const template = (profile.template || 'minimal') as ProfileTemplate
@@ -76,23 +94,6 @@ export default async function PublicProfilePage({ params }: Props) {
     .join('')
     .substring(0, 2)
     .toUpperCase()
-
-  // Fetch buttons separately — nested joins don't respect order reliably
-  const { data: buttonData } = await supabaseAdmin
-    .from('profile_buttons')
-    .select('*')
-    .eq('profile_id', profile.id)
-    .eq('is_active', true)
-    .order('position', { ascending: true })
-
-  const buttons = (buttonData || []) as ProfileButton[]
-
-  const { data: groupData } = await supabaseAdmin
-    .from('button_groups')
-    .select('*')
-    .eq('profile_id', profile.id)
-    .order('position')
-  const groups = (groupData || []) as ButtonGroup[]
 
   // ── BOLD template ────────────────────────────────────────────
   if (isBold) {

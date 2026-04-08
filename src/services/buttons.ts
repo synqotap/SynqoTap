@@ -44,10 +44,11 @@ export async function updateButton(
   buttonId: string,
   updates: Partial<ProfileButton>
 ): Promise<void> {
-  await supabase
+  const { error } = await supabase
     .from('profile_buttons')
     .update(updates)
     .eq('id', buttonId)
+  if (error) console.error('[updateButton]', error.message)
 }
 
 export async function deleteButton(

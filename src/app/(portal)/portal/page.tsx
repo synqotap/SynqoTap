@@ -139,12 +139,18 @@ export default function PortalPage() {
     const trimmed = editValueInput.trim()
     if (trimmed) {
       const isMessaging = MESSAGING_TYPES.has(editingButton.type as ButtonType)
+      // Update core fields first (always works)
       await update(editingButton.id, {
         value: trimmed,
         label: editLabelInput.trim() || BUTTON_CONFIG[editingButton.type as ButtonType]?.label || '',
-        message: isMessaging ? (editMessageInput.trim() || null) : null,
         is_active: editIsActive,
       })
+      // Update message separately — requires ALTER TABLE profile_buttons ADD COLUMN message text
+      if (isMessaging) {
+        await update(editingButton.id, {
+          message: editMessageInput.trim() || null,
+        }).catch(() => {/* column may not exist yet */})
+      }
     } else {
       await remove(editingButton.id)
     }
